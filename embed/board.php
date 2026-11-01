@@ -1376,6 +1376,7 @@ foreach ($periodeOptions as $periodOption) {
     };
     const allowedScales = [80, 90, 100, 110, 120, 130, 140, 150];
     const colorBlindPalette = ['#0072B2', '#E69F00', '#009E73', '#CC79A7', '#56B4E9', '#D55E00', '#F0E442'];
+    const highContrastPalette = ['#000000', '#404040', '#666666', '#8c8c8c', '#b3b3b3', '#d9d9d9', '#f2f2f2'];
     let preferences = { ...defaults };
 
     try {
