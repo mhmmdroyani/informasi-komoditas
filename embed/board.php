@@ -1300,6 +1300,16 @@ foreach ($periodeOptions as $periodOption) {
                 </div>
             </section>
 
+            <section class="accessibility-group" aria-labelledby="accessibilityColorBlindLabel">
+                <h3 class="accessibility-section-title" id="accessibilityColorBlindLabel">Warna</h3>
+                <button class="accessibility-option accessibility-option--wide" id="accessibilityColorBlind" type="button" aria-pressed="false">
+                    <span class="accessibility-option-icon accessibility-colorblind-swatches" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span>
+                    </span>
+                    <span>Ramah Buta Warna</span>
+                </button>
+            </section>
+
             <div class="accessibility-settings-grid">
                 <section class="accessibility-group" aria-labelledby="accessibilitySpacingLabel">
                     <h3 class="accessibility-section-title accessibility-section-title--small" id="accessibilitySpacingLabel">Jarak Baris</h3>
@@ -1338,10 +1348,12 @@ foreach ($periodeOptions as $periodOption) {
     const defaults = {
         textScale: 100,
         contrast: 'normal',
+        colorBlind: false,
         wideSpacing: false,
         readableFont: false
     };
     const allowedScales = [80, 90, 100, 110, 120, 130, 140, 150];
+    const colorBlindPalette = ['#0072B2', '#E69F00', '#009E73', '#CC79A7', '#56B4E9', '#D55E00', '#F0E442'];
     let preferences = { ...defaults };
 
     try {
@@ -1350,6 +1362,7 @@ foreach ($periodeOptions as $periodOption) {
             preferences = {
                 textScale: allowedScales.includes(savedPreferences.textScale) ? savedPreferences.textScale : defaults.textScale,
                 contrast: ['normal', 'high', 'gray'].includes(savedPreferences.contrast) ? savedPreferences.contrast : defaults.contrast,
+                colorBlind: savedPreferences.colorBlind === true,
                 wideSpacing: savedPreferences.wideSpacing === true,
                 readableFont: savedPreferences.readableFont === true
             };
@@ -1396,6 +1409,7 @@ foreach ($periodeOptions as $periodOption) {
     function applyPreferences() {
         document.body.classList.toggle('accessibility-high-contrast', preferences.contrast === 'high');
         document.body.classList.toggle('accessibility-grayscale', preferences.contrast === 'gray');
+        document.body.classList.toggle('accessibility-colorblind', preferences.colorBlind);
         document.body.classList.toggle('accessibility-wide-spacing', preferences.wideSpacing);
         document.body.classList.toggle('accessibility-readable-font', preferences.readableFont);
         scaleText(document.querySelector('.board-topbar'));
@@ -1405,9 +1419,70 @@ foreach ($periodeOptions as $periodOption) {
         document.querySelectorAll('[data-contrast]').forEach((button) => {
             button.setAttribute('aria-pressed', String(button.dataset.contrast === preferences.contrast));
         });
+        document.getElementById('accessibilityColorBlind').setAttribute('aria-pressed', String(preferences.colorBlind));
         document.getElementById('accessibilitySpacing').setAttribute('aria-pressed', String(preferences.wideSpacing));
         document.getElementById('accessibilityFont').setAttribute('aria-pressed', String(preferences.readableFont));
+        applyColorBlindPalette();
         savePreferences();
+    }
+
+    function applyColorBlindPalette() {
+        document.querySelectorAll('canvas').forEach((canvas) => {
+            const chart = window.Chart && typeof window.Chart.getChart === 'function'
+                ? window.Chart.getChart(canvas)
+                : null;
+            if (!chart) {
+                return;
+            }
+
+            chart.data.datasets.forEach((dataset, index) => {
+                const color = colorBlindPalette[index % colorBlindPalette.length];
+                if (!dataset._accessibilityColors) {
+                    dataset._accessibilityColors = {
+                        backgroundColor: dataset.backgroundColor,
+                        borderColor: dataset.borderColor
+                    };
+                }
+                if (chart.config.type === 'line') {
+                    dataset.borderColor = preferences.colorBlind ? color : dataset._accessibilityColors.borderColor;
+                    dataset.backgroundColor = preferences.colorBlind ? color : dataset._accessibilityColors.backgroundColor;
+                    return;
+                }
+
+                if (preferences.colorBlind) {
+                    dataset.backgroundColor = Array.isArray(dataset.backgroundColor)
+                        ? dataset.backgroundColor.map((_, colorIndex) => colorBlindPalette[colorIndex % colorBlindPalette.length])
+                        : color;
+                    if (Array.isArray(dataset.borderColor)) {
+                        dataset.borderColor = dataset.borderColor.map(() => '#ffffff');
+                    }
+                } else {
+                    dataset.backgroundColor = dataset._accessibilityColors.backgroundColor;
+                    dataset.borderColor = dataset._accessibilityColors.borderColor;
+                }
+            });
+            chart.update('none');
+        });
+
+        applyDestinationColors();
+    }
+
+    function applyDestinationColors(root = document) {
+        const dots = [];
+        if (root instanceof Element && root.matches('.dest-dot')) {
+            dots.push(root);
+        }
+        if (root.querySelectorAll) {
+            dots.push(...root.querySelectorAll('.dest-dot'));
+        }
+        dots.forEach((dot) => {
+            if (!dot.hasAttribute('data-a11y-original-color')) {
+                dot.dataset.a11yOriginalColor = dot.style.backgroundColor;
+            }
+            dot.style.backgroundColor = preferences.colorBlind
+                ? colorBlindPalette[Array.from(document.querySelectorAll('.dest-dot')).indexOf(dot) % colorBlindPalette.length]
+                : dot.dataset.a11yOriginalColor;
+        });
     }
 
     function setPanelOpen(isOpen) {
@@ -1448,6 +1523,10 @@ foreach ($periodeOptions as $periodOption) {
         preferences.wideSpacing = !preferences.wideSpacing;
         applyPreferences();
     });
+    document.getElementById('accessibilityColorBlind').addEventListener('click', () => {
+        preferences.colorBlind = !preferences.colorBlind;
+        applyPreferences();
+    });
     document.getElementById('accessibilityFont').addEventListener('click', () => {
         preferences.readableFont = !preferences.readableFont;
         applyPreferences();
@@ -1462,6 +1541,9 @@ foreach ($periodeOptions as $periodOption) {
             mutation.addedNodes.forEach((node) => {
                 if (node instanceof Element && !widget.contains(node)) {
                     scaleText(node);
+                    if (preferences.colorBlind) {
+                        applyDestinationColors(node);
+                    }
                 }
             });
         });
