@@ -711,10 +711,18 @@ foreach ($periodeOptions as $periodOption) {
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        animation: { duration: new URLSearchParams(window.location.search).get('print') === '1' ? 0 : 1000 },
                         plugins: { legend: { display: true } },
                         scales: {
                             y: { beginAtZero: true, grid: { color: '#e5e7eb' } },
-                            x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                            x: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: {
+                                        size: new URLSearchParams(window.location.search).get('print') === '1' ? 10 : 9
+                                    }
+                                }
+                            }
                         }
                     }
                 });
@@ -1038,6 +1046,7 @@ foreach ($periodeOptions as $periodOption) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: { duration: new URLSearchParams(window.location.search).get('print') === '1' ? 0 : 1000 },
                 cutout: '72%',
                 plugins: {
                     legend: { display: false },
@@ -1071,6 +1080,7 @@ foreach ($periodeOptions as $periodOption) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: { duration: new URLSearchParams(window.location.search).get('print') === '1' ? 0 : 1000 },
                 indexAxis: 'y',
                 plugins: {
                     legend: { display: false },
@@ -1087,7 +1097,9 @@ foreach ($periodeOptions as $periodOption) {
                 scales: {
                     x: {
                         ticks: {
-                            font: { size: 9 },
+                            font: {
+                                size: new URLSearchParams(window.location.search).get('print') === '1' ? 10 : 9
+                            },
                             callback: function(v) {
                                 return summaryUsesFrequency
                                     ? Number(v).toLocaleString('id-ID')
@@ -1232,7 +1244,7 @@ if (new URLSearchParams(window.location.search).get('print') === '1') {
     window.addEventListener('load', function() {
         window.setTimeout(function() {
             window.print();
-        }, 300);
+        }, 600);
     });
 }
 </script>
