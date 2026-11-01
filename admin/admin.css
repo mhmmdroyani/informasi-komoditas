@@ -73,6 +73,68 @@ a {
   order: -1;
 }
 
+.kelola-data-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.kelola-data-pagination-info {
+  display: grid;
+  gap: 3px;
+}
+
+.kelola-data-pagination-info span {
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.kelola-data-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.kelola-data-pagination-controls label {
+  margin-right: 2px;
+  font-weight: 600;
+}
+
+.kelola-data-pagination-controls select {
+  width: 72px;
+  min-height: 32px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.kelola-data-pagination .is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.kelola-data-page-number {
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .kelola-data-pagination {
+    align-items: stretch;
+    padding: 12px;
+  }
+
+  .kelola-data-pagination-controls {
+    justify-content: center;
+  }
+}
+
 /* ==========================================================================
    TOP NAVIGATION
    ========================================================================== */
@@ -768,6 +830,7 @@ table.data-table {
   body.page-kelola-data .admin-subnav,
   body.page-kelola-data .admin-main > :not(.kelola-data-print-header):not(.kelola-data-table-card),
   body.page-kelola-data .kelola-data-toolbar-right,
+  body.page-kelola-data .kelola-data-pagination,
   body.page-kelola-data .data-table th:first-child,
   body.page-kelola-data .data-table td:first-child,
   body.page-kelola-data .data-table th:last-child,

@@ -57,6 +57,8 @@ Jalankan di database pengujian atau salinan data yang sudah dicadangkan. Hindari
 - Coba impor file Excel valid, header tidak lengkap, file kosong, dan format yang tidak didukung.
 - Uji mode tambah/append dan replace hanya pada periode di database pengujian; pastikan nilai agregat, lokasi unik, serta status publikasi sesuai harapan.
 - Periksa ekspor Excel/CSV dan hasil cetak Kelola Data.
+- Uji tabel Kelola Data dengan lebih dari 25 baris: ganti halaman dan ukuran halaman (25/50/100), lalu pastikan filter periode tetap dipakai. Download Excel harus berisi seluruh hasil filter periode, bukan hanya baris pada halaman aktif.
+- Pastikan aksi pilih/publikasi dan hapus batch hanya berlaku pada baris yang tampil di halaman aktif.
 - Coba proses pada koneksi database yang gagal di lingkungan uji dan pastikan error tidak disajikan sebagai keberhasilan.
 
 ## Batas cakupan saat ini
