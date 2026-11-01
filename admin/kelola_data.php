@@ -355,6 +355,10 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"></path></svg>
                                 <span>Download Excel</span>
                             </a>
+                            <a href="export_kelola_data_pdf.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori, 'periode_a' => $periodeA, 'periode_b' => $periodeB]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-brand btn-sm">
+                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3h7l5 5v13H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3v5h5M9 13h6m-6 3h6"></path></svg>
+                                <span>Download PDF</span>
+                            </a>
                         <?php endif; ?>
                     </div>
                 </div>
