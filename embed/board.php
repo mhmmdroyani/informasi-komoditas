@@ -1230,6 +1230,21 @@ foreach ($periodeOptions as $periodOption) {
 </footer>
 
 <script>
+function resizeBoardChartsForPrint() {
+    if (!window.Chart || typeof window.Chart.getChart !== 'function') {
+        return;
+    }
+
+    document.querySelectorAll('canvas').forEach(function(canvas) {
+        const chart = window.Chart.getChart(canvas);
+        if (chart) {
+            chart.resize();
+        }
+    });
+}
+
+window.addEventListener('beforeprint', resizeBoardChartsForPrint);
+
 function openPrintBoard() {
     const printUrl = new URL(window.location.href);
     printUrl.searchParams.set('print', '1');
@@ -1243,8 +1258,12 @@ function openPrintBoard() {
 if (new URLSearchParams(window.location.search).get('print') === '1') {
     window.addEventListener('load', function() {
         window.setTimeout(function() {
-            window.print();
-        }, 600);
+            resizeBoardChartsForPrint();
+            window.requestAnimationFrame(function() {
+                resizeBoardChartsForPrint();
+                window.print();
+            });
+        }, 800);
     });
 }
 </script>

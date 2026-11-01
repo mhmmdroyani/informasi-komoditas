@@ -1246,9 +1246,9 @@ body {
   }
 
   .bar-chart-container-canva {
-    flex-basis: 38mm;
-    height: 38mm;
-    min-height: 38mm;
+    flex-basis: 65mm;
+    height: 65mm;
+    min-height: 65mm;
     margin: 1.5mm 0 0;
   }
 
@@ -1278,7 +1278,6 @@ body {
     border: 1px solid #d5dce5;
     border-radius: 2mm;
     box-shadow: none;
-    break-inside: avoid;
   }
 
   .board-comparison-chart h2 {
@@ -1309,7 +1308,7 @@ body {
   }
 
   .comparison-chart-canvas {
-    height: 55mm;
+    height: 58mm;
   }
 
   .board-empty-state {
