@@ -958,6 +958,19 @@ foreach ($periodeOptions as $periodOption) {
         const summaryLabels = <?= json_encode(array_column($summaryItems, 'name'), JSON_UNESCAPED_UNICODE) ?>;
         const summaryValues = <?= json_encode(array_map('floatval', array_column($summaryItems, 'value'))) ?>;
         const summaryColors = <?= json_encode(array_column($summaryItems, 'color')) ?>;
+        const storedAccessibilityPreferences = (() => {
+            try {
+                return JSON.parse(localStorage.getItem('boardAccessibilityPreferences') || '{}');
+            } catch (error) {
+                console.warn('Preferensi aksesibilitas grafik tidak dapat dibaca.', error);
+                return {};
+            }
+        })();
+        const initialChartPalette = storedAccessibilityPreferences.contrast === 'high'
+            ? ['#000000', '#404040', '#737373', '#a6a6a6', '#d9d9d9']
+            : (storedAccessibilityPreferences.colorBlind
+                ? ['#0072B2', '#E69F00', '#009E73', '#CC79A7', '#56B4E9', '#D55E00', '#F0E442']
+                : null);
         const summaryUsesFrequency = <?= json_encode($urutan === 'frekuensi') ?>;
         const locationsByCommodity = <?= json_encode($locationsByCommodity, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         const destinationLabel = <?= json_encode($labelArahUpper, JSON_UNESCAPED_UNICODE) ?>;
@@ -1045,9 +1058,11 @@ foreach ($periodeOptions as $periodOption) {
                 labels: summaryLabels,
                 datasets: [{
                     data: summaryValues,
-                    backgroundColor: summaryColors,
+                    backgroundColor: initialChartPalette
+                        ? summaryValues.map((_, index) => initialChartPalette[index % initialChartPalette.length])
+                        : summaryColors,
                     borderWidth: 2,
-                    borderColor: '#ffffff',
+                    borderColor: initialChartPalette ? summaryValues.map(() => '#000000') : '#ffffff',
                     hoverOffset: 4
                 }]
             },
@@ -1079,7 +1094,11 @@ foreach ($periodeOptions as $periodOption) {
                 datasets: [{
                     label: summaryUsesFrequency ? 'Frekuensi' : 'Nilai',
                     data: summaryUsesFrequency ? summaryValues : summaryValues.map(v => v / 1e9),
-                    backgroundColor: '#1d4ed8',
+                    backgroundColor: initialChartPalette
+                        ? summaryValues.map((_, index) => initialChartPalette[index % initialChartPalette.length])
+                        : '#1d4ed8',
+                    borderColor: initialChartPalette ? summaryValues.map(() => '#000000') : undefined,
+                    borderWidth: initialChartPalette ? 1 : 0,
                     borderRadius: 4,
                     barPercentage: 0.6
                 }]
@@ -1444,9 +1463,15 @@ foreach ($periodeOptions as $periodOption) {
             chart.data.datasets.forEach((dataset, index) => {
                 if (!dataset._accessibilityColors) {
                     dataset._accessibilityColors = {
-                        backgroundColor: dataset.backgroundColor,
-                        borderColor: dataset.borderColor,
-                        borderWidth: dataset.borderWidth
+                        backgroundColor: canvas.id === 'donutChartMaster'
+                            ? summaryColors
+                            : (canvas.id === 'barChartMaster' ? '#1d4ed8' : dataset.backgroundColor),
+                        borderColor: canvas.id === 'donutChartMaster'
+                            ? '#ffffff'
+                            : (canvas.id === 'barChartMaster' ? undefined : dataset.borderColor),
+                        borderWidth: canvas.id === 'donutChartMaster'
+                            ? 2
+                            : (canvas.id === 'barChartMaster' ? 0 : dataset.borderWidth)
                     };
                 }
                 const color = palette[index % palette.length];
