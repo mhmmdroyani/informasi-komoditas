@@ -37,7 +37,8 @@ Jalankan di database pengujian atau salinan data yang sudah dicadangkan. Hindari
 - Ubah periode A/B dan pastikan daftar, ringkasan, grafik, serta label periode mengikuti pilihan.
 - Ubah urutan, jumlah Top, dan kategori; pastikan filter tidak kehilangan pilihan penting.
 - Periksa agregasi nama komoditas awalan Burung, Ular, Vaksin, dan Ayam; Sarang Burung Walet harus tetap terpisah.
-- Periksa keadaan tanpa data, tombol cetak, layout layar kecil, serta hasil cetak.
+- Periksa keadaan tanpa data, tombol cetak, dan layout layar kecil.
+- Cetak board ke PDF A4 landscape; pastikan logo, judul, periode, KPI, panel, serta grafik terbaca dan tidak terpotong. Isi boleh berlanjut ke halaman berikutnya bila tidak muat.
 
 ### Mode Grafik
 

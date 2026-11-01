@@ -711,7 +711,6 @@ foreach ($periodeOptions as $periodOption) {
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        animation: { duration: new URLSearchParams(window.location.search).get('print') === '1' ? 0 : 1000 },
                         plugins: { legend: { display: true } },
                         scales: {
                             y: { beginAtZero: true, grid: { color: '#e5e7eb' } },
@@ -719,7 +718,7 @@ foreach ($periodeOptions as $periodOption) {
                                 grid: { display: false },
                                 ticks: {
                                     font: {
-                                        size: new URLSearchParams(window.location.search).get('print') === '1' ? 10 : 9
+                                        size: 9
                                     }
                                 }
                             }
@@ -1046,7 +1045,6 @@ foreach ($periodeOptions as $periodOption) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: new URLSearchParams(window.location.search).get('print') === '1' ? 0 : 1000 },
                 cutout: '72%',
                 plugins: {
                     legend: { display: false },
@@ -1080,7 +1078,6 @@ foreach ($periodeOptions as $periodOption) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: new URLSearchParams(window.location.search).get('print') === '1' ? 0 : 1000 },
                 indexAxis: 'y',
                 plugins: {
                     legend: { display: false },
@@ -1098,7 +1095,7 @@ foreach ($periodeOptions as $periodOption) {
                     x: {
                         ticks: {
                             font: {
-                                size: new URLSearchParams(window.location.search).get('print') === '1' ? 10 : 9
+                                size: 9
                             },
                             callback: function(v) {
                                 return summaryUsesFrequency
@@ -1230,7 +1227,7 @@ foreach ($periodeOptions as $periodOption) {
 </footer>
 
 <script>
-function resizeBoardChartsForPrint() {
+function prepareBoardForPrint() {
     if (!window.Chart || typeof window.Chart.getChart !== 'function') {
         return;
     }
@@ -1238,33 +1235,18 @@ function resizeBoardChartsForPrint() {
     document.querySelectorAll('canvas').forEach(function(canvas) {
         const chart = window.Chart.getChart(canvas);
         if (chart) {
+            chart.stop();
             chart.resize();
+            chart.update('none');
         }
     });
 }
 
-window.addEventListener('beforeprint', resizeBoardChartsForPrint);
+window.addEventListener('beforeprint', prepareBoardForPrint);
 
 function openPrintBoard() {
-    const printUrl = new URL(window.location.href);
-    printUrl.searchParams.set('print', '1');
-    const printWindow = window.open(printUrl.toString(), '_blank');
-
-    if (printWindow) {
-        printWindow.focus();
-    }
-}
-
-if (new URLSearchParams(window.location.search).get('print') === '1') {
-    window.addEventListener('load', function() {
-        window.setTimeout(function() {
-            resizeBoardChartsForPrint();
-            window.requestAnimationFrame(function() {
-                resizeBoardChartsForPrint();
-                window.print();
-            });
-        }, 800);
-    });
+    prepareBoardForPrint();
+    window.print();
 }
 </script>
 
