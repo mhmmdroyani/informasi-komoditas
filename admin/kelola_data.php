@@ -155,29 +155,6 @@ usort($dataItems, static function ($left, $right) use ($urutanKolom) {
 $totalItem = count($dataItems);
 $totalPublished = count(array_filter($dataItems, fn($r) => $r['is_published'] == 1));
 $totalDraft = $totalItem - $totalPublished;
-$pageSizeOptions = [25, 50, 100];
-$requestedPageSize = filter_var($_GET['per_page'] ?? 25, FILTER_VALIDATE_INT);
-$pageSize = $requestedPageSize !== false && in_array($requestedPageSize, $pageSizeOptions, true)
-    ? $requestedPageSize
-    : 25;
-$totalPages = max(1, (int)ceil($totalItem / $pageSize));
-$requestedPage = filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT);
-$currentPage = $requestedPage !== false && $requestedPage > 0
-    ? min($requestedPage, $totalPages)
-    : 1;
-$pageDataItems = array_slice($dataItems, ($currentPage - 1) * $pageSize, $pageSize);
-$pageStart = $totalItem > 0 ? (($currentPage - 1) * $pageSize) + 1 : 0;
-$pageEnd = min($currentPage * $pageSize, $totalItem);
-$paginationParams = [
-    'jenis' => $jenis,
-    'kategori' => $kategori,
-    'periode_a' => $periodeA,
-    'periode_b' => $periodeB,
-    'per_page' => $pageSize,
-];
-$paginationUrl = static function (int $page) use ($paginationParams): string {
-    return 'kelola_data.php?' . http_build_query($paginationParams + ['page' => $page]);
-};
 
 // Alert messages
 $msg = $_GET['msg'] ?? '';
@@ -337,41 +314,6 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
 
         </form>
 
-        <?php if ($totalPages > 1): ?>
-            <nav class="kelola-data-pagination" aria-label="Navigasi halaman tabel data">
-                <div class="kelola-data-pagination-info">
-                    Menampilkan <?= number_format($pageStart, 0, ',', '.') ?>–<?= number_format($pageEnd, 0, ',', '.') ?>
-                    dari <?= number_format($totalItem, 0, ',', '.') ?> data
-                </div>
-                <div class="kelola-data-pagination-controls">
-                    <label for="pageSizeSelect">Baris per halaman</label>
-                    <select id="pageSizeSelect" class="field-input" onchange="changePageSize(this.value)">
-                        <?php foreach ($pageSizeOptions as $pageSizeOption): ?>
-                            <option value="<?= $pageSizeOption ?>" <?= $pageSize === $pageSizeOption ? 'selected' : '' ?>><?= $pageSizeOption ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <span class="kelola-data-page-number">Halaman <?= $currentPage ?> dari <?= $totalPages ?></span>
-                    <a class="btn btn-outline-brand btn-sm <?= $currentPage <= 1 ? 'is-disabled' : '' ?>"
-                        href="<?= $currentPage > 1 ? htmlspecialchars($paginationUrl($currentPage - 1), ENT_QUOTES, 'UTF-8') : '#' ?>"
-                        <?= $currentPage <= 1 ? 'aria-disabled="true" tabindex="-1"' : '' ?>>Sebelumnya</a>
-                    <?php
-                    $visiblePages = array_unique(array_filter(
-                        [$currentPage - 2, $currentPage - 1, $currentPage, $currentPage + 1, $currentPage + 2],
-                        static fn($page) => $page >= 1 && $page <= $totalPages
-                    ));
-                    foreach ($visiblePages as $pageNumber):
-                    ?>
-                        <a class="btn btn-sm <?= $pageNumber === $currentPage ? 'btn-primary' : 'btn-outline-brand' ?>"
-                            href="<?= htmlspecialchars($paginationUrl($pageNumber), ENT_QUOTES, 'UTF-8') ?>"
-                            <?= $pageNumber === $currentPage ? 'aria-current="page"' : '' ?>><?= $pageNumber ?></a>
-                    <?php endforeach; ?>
-                    <a class="btn btn-outline-brand btn-sm <?= $currentPage >= $totalPages ? 'is-disabled' : '' ?>"
-                        href="<?= $currentPage < $totalPages ? htmlspecialchars($paginationUrl($currentPage + 1), ENT_QUOTES, 'UTF-8') : '#' ?>"
-                        <?= $currentPage >= $totalPages ? 'aria-disabled="true" tabindex="-1"' : '' ?>>Berikutnya</a>
-                </div>
-            </nav>
-        <?php endif; ?>
-
             <!-- Tabel Data Komoditas -->
             <div class="kelola-data-print-header">
                 <h1>Data Komoditas Karantina</h1>
@@ -451,7 +393,7 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                                     </td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($pageDataItems as $idx => $row): ?>
+                                <?php foreach ($dataItems as $idx => $row): ?>
                                     <tr class="<?= $row['is_published'] ? 'is-published' : '' ?>">
                                         <td style="text-align: center;">
                                             <?php if (!$aggregateMode): ?>
@@ -553,13 +495,6 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
             periode_a: periodeA,
             periode_b: periodeB
         });
-        window.location.href = 'kelola_data.php?' + params.toString();
-    }
-
-    function changePageSize(pageSize) {
-        const params = new URLSearchParams(window.location.search);
-        params.set('per_page', pageSize);
-        params.delete('page');
         window.location.href = 'kelola_data.php?' + params.toString();
     }
 
