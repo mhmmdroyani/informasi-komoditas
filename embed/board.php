@@ -1464,6 +1464,15 @@ foreach ($periodeOptions as $periodOption) {
             chart.update('none');
         });
 
+        document.querySelectorAll('.legend-dot-canva').forEach((dot, index) => {
+            if (!dot.hasAttribute('data-a11y-original-color')) {
+                dot.dataset.a11yOriginalColor = dot.style.backgroundColor;
+            }
+            dot.style.backgroundColor = preferences.colorBlind
+                ? colorBlindPalette[index % colorBlindPalette.length]
+                : dot.dataset.a11yOriginalColor;
+        });
+
         applyDestinationColors();
     }
 

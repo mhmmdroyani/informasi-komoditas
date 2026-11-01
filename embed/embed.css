@@ -1993,10 +1993,48 @@ body {
   background: #4e2499;
 }
 
-.accessibility-high-contrast .board-topbar,
-.accessibility-high-contrast .board-container,
-.accessibility-high-contrast .footer-komoditas {
-  filter: contrast(1.45);
+body.accessibility-high-contrast,
+body.accessibility-high-contrast * {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  border-color: #000000 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+body.accessibility-high-contrast .board-topbar,
+body.accessibility-high-contrast .panel-header-canva,
+body.accessibility-high-contrast .footer-komoditas,
+body.accessibility-high-contrast .accessibility-panel-header,
+body.accessibility-high-contrast .accessibility-reset,
+body.accessibility-high-contrast .accessibility-option[aria-pressed="true"] {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.accessibility-high-contrast .board-topbar *,
+body.accessibility-high-contrast .panel-header-canva *,
+body.accessibility-high-contrast .footer-komoditas *,
+body.accessibility-high-contrast .accessibility-panel-header *,
+body.accessibility-high-contrast .accessibility-reset *,
+body.accessibility-high-contrast .accessibility-option[aria-pressed="true"] * {
+  background-color: transparent !important;
+  color: #ffffff !important;
+}
+
+body.accessibility-high-contrast :is(a, button, select, input, [tabindex]):focus-visible {
+  outline: 3px solid #000000 !important;
+  outline-offset: 3px;
+}
+
+body.accessibility-high-contrast :is(a, button):hover {
+  outline: 2px solid #000000;
+  outline-offset: 1px;
+}
+
+body.accessibility-high-contrast canvas,
+body.accessibility-high-contrast img {
+  filter: grayscale(1) contrast(1.5);
 }
 
 .accessibility-grayscale .board-topbar,
@@ -2024,8 +2062,45 @@ body {
   outline-offset: 2px;
 }
 
+.accessibility-colorblind .kpi-icon-circle.blue,
+.accessibility-colorblind .kpi-number-canva.blue,
+.accessibility-colorblind .kpi-unit-canva.blue {
+  color: #0072b2;
+}
+
+.accessibility-colorblind .kpi-icon-circle.teal,
+.accessibility-colorblind .kpi-number-canva.teal,
+.accessibility-colorblind .kpi-unit-canva.teal {
+  color: #d55e00;
+}
+
+.accessibility-colorblind .kpi-icon-circle.lime,
+.accessibility-colorblind .kpi-number-canva.lime,
+.accessibility-colorblind .kpi-unit-canva.lime {
+  color: #007a5e;
+}
+
+.accessibility-colorblind .kpi-icon-circle.orange,
+.accessibility-colorblind .kpi-number-canva.orange,
+.accessibility-colorblind .kpi-unit-canva.orange {
+  color: #9c4f96;
+}
+
 .accessibility-colorblind .tbr-badge {
-  background: #0072b2;
+  background-color: #0072b2;
+  color: #ffffff;
+}
+
+.accessibility-colorblind .legend-val-badge,
+.accessibility-colorblind .dest-count {
+  border-color: #0072b2;
+  background-color: #e8f4fa;
+  color: #075985;
+}
+
+.accessibility-colorblind .ph-icon-box {
+  background-color: #e8f4fa;
+  color: #075985;
 }
 
 @media (max-width: 480px) {
