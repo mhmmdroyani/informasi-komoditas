@@ -1152,22 +1152,22 @@ body {
   }
 
   .panels-row-canva {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1.05fr);
-    align-items: start;
-    gap: 3mm;
+    display: block;
     margin: 0;
     break-inside: auto;
     page-break-inside: auto;
   }
 
   .panel-canva {
+    display: flex;
     min-width: 0;
     overflow: visible;
+    margin: 0 0 4mm;
     border: 1px solid #d5dce5;
     border-radius: 2mm;
     box-shadow: none;
-    break-inside: auto;
-    page-break-inside: auto;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
   }
 
   .panel-header-canva {
@@ -1181,6 +1181,10 @@ body {
   .panel-body-canva {
     min-height: 0;
     padding: 2.5mm;
+  }
+
+  .top-commodity-panel-body {
+    display: block;
   }
 
   .donut-layout {
