@@ -1264,18 +1264,20 @@ foreach ($periodeOptions as $periodOption) {
         aria-controls="accessibilityPanel"
         aria-expanded="false"
     >
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="4" r="1"></circle>
-            <path d="M4 7h16M12 7v5m0 0-4 8m4-8 5 5m-8-5h7"></path>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="6.5" r="1.25"></circle>
+            <path d="M5.5 9.5 12 11l6.5-1.5M12 11v4m0 0-3 4m3-4 3 4"></path>
         </svg>
     </button>
 
     <section class="accessibility-panel" id="accessibilityPanel" aria-labelledby="accessibilityTitle" hidden>
         <header class="accessibility-panel-header">
             <div class="accessibility-panel-heading">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="4" r="1"></circle>
-                    <path d="M4 7h16M12 7v5m0 0-4 8m4-8 5 5m-8-5h7"></path>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="6.5" r="1.25"></circle>
+                    <path d="M5.5 9.5 12 11l6.5-1.5M12 11v4m0 0-3 4m3-4 3 4"></path>
                 </svg>
                 <h2 id="accessibilityTitle">Aksesibilitas</h2>
             </div>
