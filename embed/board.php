@@ -1235,7 +1235,241 @@ foreach ($periodeOptions as $periodOption) {
 
 </footer>
 
+<div class="accessibility-widget" id="accessibilityWidget">
+    <button
+        class="accessibility-trigger"
+        id="accessibilityTrigger"
+        type="button"
+        aria-label="Buka pengaturan aksesibilitas"
+        aria-controls="accessibilityPanel"
+        aria-expanded="false"
+    >
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="4" r="1"></circle>
+            <path d="M4 7h16M12 7v5m0 0-4 8m4-8 5 5m-8-5h7"></path>
+        </svg>
+    </button>
+
+    <section class="accessibility-panel" id="accessibilityPanel" aria-labelledby="accessibilityTitle" hidden>
+        <header class="accessibility-panel-header">
+            <div class="accessibility-panel-heading">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="4" r="1"></circle>
+                    <path d="M4 7h16M12 7v5m0 0-4 8m4-8 5 5m-8-5h7"></path>
+                </svg>
+                <h2 id="accessibilityTitle">Aksesibilitas</h2>
+            </div>
+            <button class="accessibility-close" id="accessibilityClose" type="button" aria-label="Tutup pengaturan aksesibilitas">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </header>
+
+        <div class="accessibility-panel-content">
+            <section class="accessibility-group" aria-labelledby="accessibilityTextLabel">
+                <div class="accessibility-group-heading">
+                    <h3 id="accessibilityTextLabel">Ukuran Teks</h3>
+                    <output id="accessibilityTextValue" aria-live="polite">100%</output>
+                </div>
+                <div class="accessibility-button-row">
+                    <button class="accessibility-option" id="accessibilityTextDown" type="button" aria-label="Kecilkan teks">
+                        <span class="accessibility-option-icon" aria-hidden="true">A−</span>
+                        <span>Kecilkan</span>
+                    </button>
+                    <button class="accessibility-option" id="accessibilityTextUp" type="button" aria-label="Besarkan teks">
+                        <span class="accessibility-option-icon" aria-hidden="true">A+</span>
+                        <span>Besarkan</span>
+                    </button>
+                </div>
+            </section>
+
+            <section class="accessibility-group" aria-labelledby="accessibilityContrastLabel">
+                <h3 class="accessibility-section-title" id="accessibilityContrastLabel">Kontras</h3>
+                <div class="accessibility-button-row accessibility-button-row--three">
+                    <button class="accessibility-option" type="button" data-contrast="normal" aria-pressed="true">
+                        <span class="accessibility-option-icon" aria-hidden="true">☼</span>
+                        <span>Normal</span>
+                    </button>
+                    <button class="accessibility-option" type="button" data-contrast="high" aria-pressed="false">
+                        <span class="accessibility-option-icon" aria-hidden="true">◐</span>
+                        <span>Tinggi</span>
+                    </button>
+                    <button class="accessibility-option" type="button" data-contrast="gray" aria-pressed="false">
+                        <span class="accessibility-option-icon" aria-hidden="true">☾</span>
+                        <span>Abu-abu</span>
+                    </button>
+                </div>
+            </section>
+
+            <div class="accessibility-settings-grid">
+                <section class="accessibility-group" aria-labelledby="accessibilitySpacingLabel">
+                    <h3 class="accessibility-section-title accessibility-section-title--small" id="accessibilitySpacingLabel">Jarak Baris</h3>
+                    <button class="accessibility-option accessibility-option--large" id="accessibilitySpacing" type="button" aria-pressed="false">
+                        <span class="accessibility-option-icon" aria-hidden="true">A̲</span>
+                        <span>Lebar</span>
+                    </button>
+                </section>
+                <section class="accessibility-group" aria-labelledby="accessibilityFontLabel">
+                    <h3 class="accessibility-section-title accessibility-section-title--small" id="accessibilityFontLabel">Jenis Huruf</h3>
+                    <button class="accessibility-option accessibility-option--large" id="accessibilityFont" type="button" aria-pressed="false">
+                        <span class="accessibility-option-icon" aria-hidden="true">Aa</span>
+                        <span>Mudah Baca</span>
+                    </button>
+                </section>
+            </div>
+        </div>
+
+        <footer class="accessibility-panel-footer">
+            <button class="accessibility-reset" id="accessibilityReset" type="button">
+                <span aria-hidden="true">↶</span>
+                Reset Semua
+            </button>
+        </footer>
+    </section>
+</div>
+
 <script>
+(() => {
+    const widget = document.getElementById('accessibilityWidget');
+    const trigger = document.getElementById('accessibilityTrigger');
+    const panel = document.getElementById('accessibilityPanel');
+    const closeButton = document.getElementById('accessibilityClose');
+    const textValue = document.getElementById('accessibilityTextValue');
+    const storageKey = 'boardAccessibilityPreferences';
+    const defaults = {
+        textScale: 100,
+        contrast: 'normal',
+        wideSpacing: false,
+        readableFont: false
+    };
+    const allowedScales = [80, 90, 100, 110, 120, 130, 140, 150];
+    let preferences = { ...defaults };
+
+    try {
+        const savedPreferences = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        if (savedPreferences && typeof savedPreferences === 'object') {
+            preferences = {
+                textScale: allowedScales.includes(savedPreferences.textScale) ? savedPreferences.textScale : defaults.textScale,
+                contrast: ['normal', 'high', 'gray'].includes(savedPreferences.contrast) ? savedPreferences.contrast : defaults.contrast,
+                wideSpacing: savedPreferences.wideSpacing === true,
+                readableFont: savedPreferences.readableFont === true
+            };
+        }
+    } catch (error) {
+        console.warn('Preferensi aksesibilitas tidak dapat dibaca dari penyimpanan browser.', error);
+    }
+
+    function savePreferences() {
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(preferences));
+        } catch (error) {
+            console.warn('Preferensi aksesibilitas tidak dapat disimpan di browser ini.', error);
+        }
+    }
+
+    function scaleText(root) {
+        const selector = 'h1,h2,h3,h4,h5,h6,p,span,a,button,label,select,option,li,td,th,strong,small,div';
+        const elements = [];
+        if (root instanceof Element && root.matches(selector)) {
+            elements.push(root);
+        }
+        if (root.querySelectorAll) {
+            elements.push(...root.querySelectorAll(selector));
+        }
+
+        elements.forEach((element) => {
+            if (!Array.from(element.childNodes).some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '')) {
+                return;
+            }
+            if (!element.hasAttribute('data-a11y-font-size')) {
+                element.dataset.a11yFontSize = getComputedStyle(element).fontSize;
+                element.dataset.a11yInlineFontSize = element.style.fontSize;
+            }
+            const originalSize = Number.parseFloat(element.dataset.a11yFontSize);
+            if (preferences.textScale === defaults.textScale || !Number.isFinite(originalSize)) {
+                element.style.fontSize = element.dataset.a11yInlineFontSize;
+            } else {
+                element.style.fontSize = `${originalSize * preferences.textScale / 100}px`;
+            }
+        });
+    }
+
+    function applyPreferences() {
+        document.body.classList.toggle('accessibility-high-contrast', preferences.contrast === 'high');
+        document.body.classList.toggle('accessibility-grayscale', preferences.contrast === 'gray');
+        document.body.classList.toggle('accessibility-wide-spacing', preferences.wideSpacing);
+        document.body.classList.toggle('accessibility-readable-font', preferences.readableFont);
+        scaleText(document.querySelector('.board-topbar'));
+        scaleText(document.querySelector('.board-container'));
+        scaleText(document.querySelector('.footer-komoditas'));
+        textValue.textContent = `${preferences.textScale}%`;
+        document.querySelectorAll('[data-contrast]').forEach((button) => {
+            button.setAttribute('aria-pressed', String(button.dataset.contrast === preferences.contrast));
+        });
+        document.getElementById('accessibilitySpacing').setAttribute('aria-pressed', String(preferences.wideSpacing));
+        document.getElementById('accessibilityFont').setAttribute('aria-pressed', String(preferences.readableFont));
+        savePreferences();
+    }
+
+    function setPanelOpen(isOpen) {
+        panel.hidden = !isOpen;
+        trigger.setAttribute('aria-expanded', String(isOpen));
+        if (isOpen) {
+            closeButton.focus();
+        } else {
+            trigger.focus();
+        }
+    }
+
+    trigger.addEventListener('click', () => setPanelOpen(panel.hidden));
+    closeButton.addEventListener('click', () => setPanelOpen(false));
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !panel.hidden) {
+            setPanelOpen(false);
+        }
+    });
+
+    document.getElementById('accessibilityTextDown').addEventListener('click', () => {
+        const currentIndex = allowedScales.indexOf(preferences.textScale);
+        preferences.textScale = allowedScales[Math.max(0, currentIndex - 1)];
+        applyPreferences();
+    });
+    document.getElementById('accessibilityTextUp').addEventListener('click', () => {
+        const currentIndex = allowedScales.indexOf(preferences.textScale);
+        preferences.textScale = allowedScales[Math.min(allowedScales.length - 1, currentIndex + 1)];
+        applyPreferences();
+    });
+    document.querySelectorAll('[data-contrast]').forEach((button) => {
+        button.addEventListener('click', () => {
+            preferences.contrast = button.dataset.contrast;
+            applyPreferences();
+        });
+    });
+    document.getElementById('accessibilitySpacing').addEventListener('click', () => {
+        preferences.wideSpacing = !preferences.wideSpacing;
+        applyPreferences();
+    });
+    document.getElementById('accessibilityFont').addEventListener('click', () => {
+        preferences.readableFont = !preferences.readableFont;
+        applyPreferences();
+    });
+    document.getElementById('accessibilityReset').addEventListener('click', () => {
+        preferences = { ...defaults };
+        applyPreferences();
+    });
+
+    new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node instanceof Element && !widget.contains(node)) {
+                    scaleText(node);
+                }
+            });
+        });
+    }).observe(document.querySelector('.board-container'), { childList: true, subtree: true });
+
+    applyPreferences();
+})();
+
 function prepareBoardForPrint() {
     if (!window.Chart || typeof window.Chart.getChart !== 'function') {
         return;
