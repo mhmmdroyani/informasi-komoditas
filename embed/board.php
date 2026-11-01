@@ -928,7 +928,7 @@ foreach ($periodeOptions as $periodOption) {
                         <div class="dest-list" id="destinationList">
                             <?php 
                             $dIdx = 0;
-                            foreach (array_slice($destCounts, 0, $topN > 0 ? $topN : count($destCounts), true) as $dName => $_):
+                            foreach (array_slice($destCounts, 0, $topN > 0 ? $topN : count($destCounts), true) as $dName => $destinationCount):
                                 $flagCode = null;
                                 if (!$isDomestik) {
                                     $destinationKey = strtolower(trim($dName));
@@ -940,10 +940,11 @@ foreach ($periodeOptions as $periodOption) {
                                     }
                                 }
                             ?>
-                                <div class="dest-row" title="<?= htmlspecialchars($dName) ?>">
+                                <div class="dest-row" title="<?= htmlspecialchars($dName . ' — muncul pada ' . $destinationCount . ' baris data') ?>">
                                     <?php if ($flagCode): ?><img class="dest-flag" src="https://flagcdn.com/w40/<?= $flagCode ?>.png" alt="Bendera <?= htmlspecialchars($dName) ?>"><?php endif; ?>
                                     <?php if (!$flagCode): ?><span class="dest-dot" style="background-color: <?= $colors[$dIdx % count($colors)] ?>;"></span><?php endif; ?>
                                     <span class="dest-name"><?= htmlspecialchars(strtoupper($dName)) ?></span>
+                                    <span class="dest-count" aria-label="Muncul pada <?= number_format($destinationCount, 0, ',', '.') ?> baris data"><?= number_format($destinationCount, 0, ',', '.') ?> data</span>
                                 </div>
                             <?php $dIdx++; endforeach; ?>
                         </div>
@@ -1008,6 +1009,14 @@ foreach ($periodeOptions as $periodOption) {
                 name.className = 'dest-name';
                 name.textContent = location.name.toLocaleUpperCase('id-ID');
                 item.appendChild(name);
+                const count = document.createElement('span');
+                count.className = 'dest-count';
+                count.textContent = Number(location.count).toLocaleString('id-ID') + ' data';
+                count.setAttribute(
+                    'aria-label',
+                    'Muncul pada ' + Number(location.count).toLocaleString('id-ID') + ' baris data'
+                );
+                item.appendChild(count);
                 destinationList.appendChild(item);
             });
 
