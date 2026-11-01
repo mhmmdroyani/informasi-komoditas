@@ -966,8 +966,9 @@ foreach ($periodeOptions as $periodOption) {
                 return {};
             }
         })();
+        const highContrastPalette = ['#000000', '#404040', '#666666', '#8c8c8c', '#b3b3b3', '#d9d9d9', '#f2f2f2'];
         const initialChartPalette = storedAccessibilityPreferences.contrast === 'high'
-            ? ['#000000', '#404040', '#737373', '#a6a6a6', '#d9d9d9']
+            ? highContrastPalette
             : (storedAccessibilityPreferences.colorBlind
                 ? ['#0072B2', '#E69F00', '#009E73', '#CC79A7', '#56B4E9', '#D55E00', '#F0E442']
                 : null);
@@ -1457,7 +1458,7 @@ foreach ($periodeOptions as $periodOption) {
             const highContrast = preferences.contrast === 'high';
             const accessibilityEnabled = preferences.colorBlind || highContrast;
             const palette = highContrast
-                ? ['#000000', '#404040', '#737373', '#a6a6a6', '#d9d9d9']
+                ? highContrastPalette
                 : colorBlindPalette;
 
             chart.data.datasets.forEach((dataset, index) => {
@@ -1507,9 +1508,17 @@ foreach ($periodeOptions as $periodOption) {
             if (!dot.hasAttribute('data-a11y-original-color')) {
                 dot.dataset.a11yOriginalColor = dot.style.backgroundColor;
             }
-            dot.style.backgroundColor = preferences.colorBlind
-                ? colorBlindPalette[index % colorBlindPalette.length]
-                : dot.dataset.a11yOriginalColor;
+            const palette = preferences.contrast === 'high'
+                ? highContrastPalette
+                : (preferences.colorBlind ? colorBlindPalette : null);
+            if (palette) {
+                dot.style.setProperty('background-color', palette[index % palette.length], 'important');
+                dot.style.setProperty('border', '1px solid #000000', 'important');
+            } else {
+                dot.style.removeProperty('background-color');
+                dot.style.removeProperty('border');
+                dot.style.backgroundColor = dot.dataset.a11yOriginalColor;
+            }
         });
 
         applyDestinationColors();
