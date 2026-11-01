@@ -2032,7 +2032,6 @@ body.accessibility-high-contrast :is(a, button):hover {
   outline-offset: 1px;
 }
 
-body.accessibility-high-contrast canvas,
 body.accessibility-high-contrast img {
   filter: grayscale(1) contrast(1.5);
 }
@@ -2101,6 +2100,23 @@ body.accessibility-high-contrast img {
 .accessibility-colorblind .ph-icon-box {
   background-color: #e8f4fa;
   color: #075985;
+}
+
+body.accessibility-colorblind {
+  --brand-dark: #003b5c;
+  --brand: #0072b2;
+  --brand-soft: #e8f4fa;
+  --accent-blue: #0072b2;
+  --accent-blue-soft: #e8f4fa;
+  --accent-amber: #d55e00;
+  --accent-amber-soft: #fff1e8;
+  --gold: #e69f00;
+}
+
+body.accessibility-colorblind .board-periode-badge,
+body.accessibility-colorblind .board-login-btn,
+body.accessibility-colorblind .board-compare-btn {
+  color: #172033;
 }
 
 @media (max-width: 480px) {

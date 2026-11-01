@@ -1435,30 +1435,42 @@ foreach ($periodeOptions as $periodOption) {
                 return;
             }
 
+            const highContrast = preferences.contrast === 'high';
+            const accessibilityEnabled = preferences.colorBlind || highContrast;
+            const palette = highContrast
+                ? ['#000000', '#555555', '#888888', '#bbbbbb', '#eeeeee']
+                : colorBlindPalette;
+
             chart.data.datasets.forEach((dataset, index) => {
-                const color = colorBlindPalette[index % colorBlindPalette.length];
                 if (!dataset._accessibilityColors) {
                     dataset._accessibilityColors = {
                         backgroundColor: dataset.backgroundColor,
-                        borderColor: dataset.borderColor
+                        borderColor: dataset.borderColor,
+                        borderWidth: dataset.borderWidth
                     };
                 }
+                const color = palette[index % palette.length];
                 if (chart.config.type === 'line') {
-                    dataset.borderColor = preferences.colorBlind ? color : dataset._accessibilityColors.borderColor;
-                    dataset.backgroundColor = preferences.colorBlind ? color : dataset._accessibilityColors.backgroundColor;
+                    dataset.borderColor = accessibilityEnabled ? color : dataset._accessibilityColors.borderColor;
+                    dataset.backgroundColor = accessibilityEnabled ? color : dataset._accessibilityColors.backgroundColor;
                     return;
                 }
 
-                if (preferences.colorBlind) {
+                if (accessibilityEnabled) {
                     dataset.backgroundColor = Array.isArray(dataset.backgroundColor)
-                        ? dataset.backgroundColor.map((_, colorIndex) => colorBlindPalette[colorIndex % colorBlindPalette.length])
+                        ? dataset.backgroundColor.map((_, colorIndex) => palette[colorIndex % palette.length])
                         : color;
+                    if (chart.config.type === 'doughnut' || chart.config.type === 'pie') {
+                        dataset.borderColor = '#000000';
+                        dataset.borderWidth = 2;
+                    }
                     if (Array.isArray(dataset.borderColor)) {
                         dataset.borderColor = dataset.borderColor.map(() => '#ffffff');
                     }
                 } else {
                     dataset.backgroundColor = dataset._accessibilityColors.backgroundColor;
                     dataset.borderColor = dataset._accessibilityColors.borderColor;
+                    dataset.borderWidth = dataset._accessibilityColors.borderWidth;
                 }
             });
             chart.update('none');
