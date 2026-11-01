@@ -94,6 +94,12 @@ a {
   box-shadow: 0 4px 14px rgba(16, 24, 32, 0.1);
 }
 
+.kelola-data-pagination--inline {
+  flex: 1 0 100%;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--line);
+}
+
 .kelola-data-pagination-info {
   display: grid;
   gap: 3px;

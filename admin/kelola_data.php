@@ -332,12 +332,43 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                             <span>Update</span>
                         </button>
                     </div>
+                    <?php if ($totalPages > 1): ?>
+                        <nav class="kelola-data-pagination kelola-data-pagination--inline" aria-label="Navigasi halaman tabel data">
+                            <span class="kelola-data-page-number">
+                                Menampilkan <?= number_format($pageStart, 0, ',', '.') ?>–<?= number_format($pageEnd, 0, ',', '.') ?>
+                                dari <?= number_format($totalItem, 0, ',', '.') ?> data
+                            </span>
+                            <div class="kelola-data-pagination-controls">
+                                <label for="pageSizeSelect">Baris per halaman</label>
+                                <select id="pageSizeSelect" class="field-input" onchange="changePageSize(this.value)">
+                                    <?php foreach ($pageSizeOptions as $pageSizeOption): ?>
+                                        <option value="<?= $pageSizeOption ?>" <?= $pageSize === $pageSizeOption ? 'selected' : '' ?>><?= $pageSizeOption ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <span class="kelola-data-page-number">Halaman <?= $currentPage ?> dari <?= $totalPages ?></span>
+                                <a class="btn btn-outline-brand btn-sm <?= $currentPage <= 1 ? 'is-disabled' : '' ?>"
+                                    href="<?= $currentPage > 1 ? htmlspecialchars($paginationUrl($currentPage - 1), ENT_QUOTES, 'UTF-8') : '#' ?>"
+                                    <?= $currentPage <= 1 ? 'aria-disabled="true" tabindex="-1"' : '' ?>>Sebelumnya</a>
+                                <?php foreach (array_unique(array_filter(
+                                    [$currentPage - 2, $currentPage - 1, $currentPage, $currentPage + 1, $currentPage + 2],
+                                    static fn($page) => $page >= 1 && $page <= $totalPages
+                                )) as $pageNumber): ?>
+                                    <a class="btn btn-sm <?= $pageNumber === $currentPage ? 'btn-primary' : 'btn-outline-brand' ?>"
+                                        href="<?= htmlspecialchars($paginationUrl($pageNumber), ENT_QUOTES, 'UTF-8') ?>"
+                                        <?= $pageNumber === $currentPage ? 'aria-current="page"' : '' ?>><?= $pageNumber ?></a>
+                                <?php endforeach; ?>
+                                <a class="btn btn-outline-brand btn-sm <?= $currentPage >= $totalPages ? 'is-disabled' : '' ?>"
+                                    href="<?= htmlspecialchars($paginationUrl(min($currentPage + 1, $totalPages)), ENT_QUOTES, 'UTF-8') ?>"
+                                    <?= $currentPage >= $totalPages ? 'aria-disabled="true" tabindex="-1"' : '' ?>>Berikutnya</a>
+                            </div>
+                        </nav>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
 
         </form>
 
-        <?php if ($totalItem > 0): ?>
+        <?php if ($aggregateMode && $totalPages > 1): ?>
             <nav class="kelola-data-pagination kelola-data-pagination--visible" aria-label="Navigasi halaman tabel data">
                 <div class="kelola-data-pagination-info">
                     Menampilkan <?= number_format($pageStart, 0, ',', '.') ?>–<?= number_format($pageEnd, 0, ',', '.') ?>
