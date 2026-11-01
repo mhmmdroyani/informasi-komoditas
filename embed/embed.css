@@ -2036,6 +2036,10 @@ body.accessibility-high-contrast img {
   filter: grayscale(1) contrast(1.5);
 }
 
+body.accessibility-high-contrast canvas {
+  filter: grayscale(1) contrast(1.8);
+}
+
 .accessibility-grayscale .board-topbar,
 .accessibility-grayscale .board-container,
 .accessibility-grayscale .footer-komoditas {

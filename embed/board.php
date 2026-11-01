@@ -1438,7 +1438,7 @@ foreach ($periodeOptions as $periodOption) {
             const highContrast = preferences.contrast === 'high';
             const accessibilityEnabled = preferences.colorBlind || highContrast;
             const palette = highContrast
-                ? ['#000000', '#555555', '#888888', '#bbbbbb', '#eeeeee']
+                ? ['#000000', '#404040', '#737373', '#a6a6a6', '#d9d9d9']
                 : colorBlindPalette;
 
             chart.data.datasets.forEach((dataset, index) => {
@@ -1457,15 +1457,17 @@ foreach ($periodeOptions as $periodOption) {
                 }
 
                 if (accessibilityEnabled) {
-                    dataset.backgroundColor = Array.isArray(dataset.backgroundColor)
-                        ? dataset.backgroundColor.map((_, colorIndex) => palette[colorIndex % palette.length])
-                        : color;
-                    if (chart.config.type === 'doughnut' || chart.config.type === 'pie') {
-                        dataset.borderColor = '#000000';
-                        dataset.borderWidth = 2;
+                    if (['bar', 'doughnut', 'pie', 'polarArea'].includes(chart.config.type)) {
+                        dataset.backgroundColor = dataset.data.map((_, colorIndex) => palette[colorIndex % palette.length]);
+                    } else {
+                        dataset.backgroundColor = color;
                     }
-                    if (Array.isArray(dataset.borderColor)) {
-                        dataset.borderColor = dataset.borderColor.map(() => '#ffffff');
+                    if (['doughnut', 'pie', 'polarArea'].includes(chart.config.type)) {
+                        dataset.borderColor = dataset.data.map(() => '#000000');
+                        dataset.borderWidth = 2;
+                    } else if (chart.config.type === 'bar') {
+                        dataset.borderColor = dataset.data.map(() => '#000000');
+                        dataset.borderWidth = 1;
                     }
                 } else {
                     dataset.backgroundColor = dataset._accessibilityColors.backgroundColor;
@@ -1473,7 +1475,7 @@ foreach ($periodeOptions as $periodOption) {
                     dataset.borderWidth = dataset._accessibilityColors.borderWidth;
                 }
             });
-            chart.update('none');
+            chart.update();
         });
 
         document.querySelectorAll('.legend-dot-canva').forEach((dot, index) => {
