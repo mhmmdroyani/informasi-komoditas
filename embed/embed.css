@@ -2012,6 +2012,10 @@ body.accessibility-high-contrast .accessibility-option[aria-pressed="true"] {
   color: #ffffff !important;
 }
 
+body.accessibility-high-contrast .donut-center-overlay {
+  background-color: transparent !important;
+}
+
 body.accessibility-high-contrast .board-topbar *,
 body.accessibility-high-contrast .panel-header-canva *,
 body.accessibility-high-contrast .footer-komoditas *,
