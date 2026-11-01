@@ -1120,7 +1120,7 @@ body {
     border: 1px solid #d5dce5;
     border-radius: 2mm;
     box-shadow: none;
-    break-inside: avoid;
+    break-inside: avoid-page;
     page-break-inside: avoid;
   }
 
@@ -1156,6 +1156,8 @@ body {
     align-items: start;
     gap: 3mm;
     margin: 0;
+    break-inside: auto;
+    page-break-inside: auto;
   }
 
   .panel-canva {
@@ -1164,8 +1166,8 @@ body {
     border: 1px solid #d5dce5;
     border-radius: 2mm;
     box-shadow: none;
-    break-inside: avoid;
-    page-break-inside: avoid;
+    break-inside: auto;
+    page-break-inside: auto;
   }
 
   .panel-header-canva {
@@ -1285,8 +1287,8 @@ body {
     padding: 2mm;
     border-radius: 1mm;
     box-shadow: none;
-    break-inside: avoid;
-    page-break-inside: avoid;
+    break-inside: auto;
+    page-break-inside: auto;
   }
 
   .comparison-chart-card > span {
