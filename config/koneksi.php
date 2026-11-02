@@ -73,46 +73,6 @@ function clean_number($val) {
 }
 
 /**
- * Skips Excel rows that are headers or non-data summaries.
- */
-function is_skippable_import_row($row) {
-    if (!is_array($row)) {
-        return true;
-    }
-
-    $flat = [];
-    foreach ($row as $cell) {
-        if ($cell === null) {
-            continue;
-        }
-        $flat[] = strtolower(trim((string)$cell));
-    }
-
-    if (empty($flat)) {
-        return true;
-    }
-
-    $joined = implode(' ', $flat);
-    $headerTokens = [
-        'nama komoditas', 'nama komoditas lokal', 'media pembawa', 'frekuensi',
-        'volume', 'satuan', 'nilai', 'nilai komoditi', 'negara tujuan',
-        'negara asal', 'daerah tujuan', 'daerah asal', 'komoditas', 'judul', 'header'
-    ];
-
-    foreach ($headerTokens as $token) {
-        if (strpos($joined, $token) !== false) {
-            return true;
-        }
-    }
-
-    if (preg_match('/\b(total|jumlah|subtotal|rekap|summary)\b/i', $joined)) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
  * Format angka dalam rupiah singkat (Triliun, Miliar, Juta, Ribu)
  */
 function format_rupiah_singkat($nilai) {
@@ -222,21 +182,6 @@ function get_label_wilayah($jenis) {
         case 'impor':
         default:
             return 'Negara';
-    }
-}
-
-/**
- * Helper untuk subteks wilayah (Benua / Provinsi)
- */
-function get_label_subwilayah($jenis, $count) {
-    switch ($jenis) {
-        case 'domestik_keluar':
-        case 'domestik_masuk':
-            return $count . ' Provinsi';
-        case 'ekspor':
-        case 'impor':
-        default:
-            return $count . ' Benua';
     }
 }
 

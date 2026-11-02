@@ -103,8 +103,3 @@ function aggregate_commodity_rows(array $rows): array
 
     return $aggregated;
 }
-
-function aggregate_monthly_period_rows(array $rows): array
-{
-    return aggregate_commodity_rows($rows);
-}
