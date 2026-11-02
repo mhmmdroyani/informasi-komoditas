@@ -1480,8 +1480,8 @@ foreach ($periodeOptions as $periodOption) {
                         dataset.borderWidth = 1;
                     }
                 } else if (canvas.id === 'barChartMaster') {
-                    dataset.backgroundColor = '#1d4ed8';
-                    dataset.borderColor = undefined;
+                    dataset.backgroundColor = dataset.data.map(() => '#1d4ed8');
+                    dataset.borderColor = dataset.data.map(() => '#1d4ed8');
                     dataset.borderWidth = 0;
                 } else {
                     dataset.backgroundColor = dataset._accessibilityColors.backgroundColor;
@@ -1489,7 +1489,7 @@ foreach ($periodeOptions as $periodOption) {
                     dataset.borderWidth = dataset._accessibilityColors.borderWidth;
                 }
             });
-            chart.update();
+            chart.update('none');
         });
 
         document.querySelectorAll('.legend-dot-canva').forEach((dot, index) => {
