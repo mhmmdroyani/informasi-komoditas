@@ -1479,6 +1479,10 @@ foreach ($periodeOptions as $periodOption) {
                         dataset.borderColor = dataset.data.map(() => '#000000');
                         dataset.borderWidth = 1;
                     }
+                } else if (canvas.id === 'barChartMaster') {
+                    dataset.backgroundColor = '#1d4ed8';
+                    dataset.borderColor = undefined;
+                    dataset.borderWidth = 0;
                 } else {
                     dataset.backgroundColor = dataset._accessibilityColors.backgroundColor;
                     dataset.borderColor = dataset._accessibilityColors.borderColor;
