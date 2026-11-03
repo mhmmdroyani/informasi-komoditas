@@ -1,6 +1,31 @@
 <?php
 require_once __DIR__ . '/volume_units.php';
 
+final class RawExcelImportReadFilter implements \PhpOffice\PhpSpreadsheet\Reader\IReadFilter
+{
+    private array $allowedColumns;
+
+    public function __construct(
+        private int $firstRow,
+        private int $lastRow,
+        ?array $columns = null
+    ) {
+        $this->allowedColumns = $columns === null
+            ? []
+            : array_fill_keys(array_map(
+                static fn($columnIndex) => \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($columnIndex + 1),
+                $columns
+            ), true);
+    }
+
+    public function readCell(string $columnAddress, int $row, string $worksheetName = ''): bool
+    {
+        return $row >= $this->firstRow
+            && $row <= $this->lastRow
+            && ($this->allowedColumns === [] || isset($this->allowedColumns[$columnAddress]));
+    }
+}
+
 function normalize_raw_excel_header($value)
 {
     return strtolower(preg_replace('/[^a-z0-9]/i', '', trim((string)$value)));
@@ -145,14 +170,14 @@ function aggregate_raw_excel_rows($rows, $jenis = '')
     return $result;
 }
 
-function aggregate_raw_excel_sheet($sheet, $jenis = '')
+function aggregate_raw_excel_sheet($sheet, $jenis = '', $startRow = 1)
 {
     $headerRow = null;
     $columns = [];
     $rows = [];
     $highestDataRow = $sheet->getHighestDataRow();
 
-    foreach ($sheet->getRowIterator(1, $highestDataRow) as $row) {
+    foreach ($sheet->getRowIterator($startRow, $highestDataRow) as $row) {
         $rowIndex = $row->getRowIndex();
 
         if ($headerRow === null) {
@@ -183,6 +208,48 @@ function aggregate_raw_excel_sheet($sheet, $jenis = '')
     }
 
     return aggregate_raw_excel_rows($rows, $jenis);
+}
+
+function find_raw_excel_sheet_header($filePath, $sheetName, $jenis, $totalRows)
+{
+    $chunkSize = 250;
+    for ($firstRow = 1; $firstRow <= $totalRows; $firstRow += $chunkSize) {
+        $lastRow = min($totalRows, $firstRow + $chunkSize - 1);
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($filePath);
+        $reader->setReadDataOnly(true);
+        $reader->setReadEmptyCells(false);
+        $reader->setLoadSheetsOnly([$sheetName]);
+        $reader->setReadFilter(new RawExcelImportReadFilter($firstRow, $lastRow));
+        $spreadsheet = $reader->load($filePath);
+        $sheet = $spreadsheet->getSheet(0);
+        $header = null;
+
+        foreach ($sheet->getRowIterator($firstRow, $lastRow) as $row) {
+            $headerValues = [];
+            $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(true);
+            foreach ($cellIterator as $cell) {
+                $columnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($cell->getColumn()) - 1;
+                $headerValues[$columnIndex] = $cell->getCalculatedValue();
+            }
+
+            $columns = raw_excel_detect_columns($headerValues, $jenis);
+            if ($columns !== null) {
+                $header = ['row' => $row->getRowIndex(), 'columns' => $columns];
+                break;
+            }
+        }
+
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet, $reader, $sheet);
+        gc_collect_cycles();
+
+        if ($header !== null) {
+            return $header;
+        }
+    }
+
+    throw new RuntimeException('Header Excel tidak cocok. Pastikan kolom Klasifikasi, Komoditas, Vol P1, Satuan Lain, Harga Barang (Rp), Daerah Asal, Daerah Tujuan, dan Negara Asal/Negara Tujuan ada di Excel.');
 }
 
 function merge_raw_excel_entries($existingEntries, $newEntries)
@@ -318,11 +385,36 @@ function handle_raw_excel_upload($pdo, $kategori, array $databaseConfig)
                 if ($sheetNameToLoad === null) {
                     throw new RuntimeException('File Excel tidak memiliki sheet yang dapat dibaca.');
                 }
+                $sheetInfo = null;
+                foreach ($reader->listWorksheetInfo($filePath) as $worksheetInfo) {
+                    if ($worksheetInfo['worksheetName'] === $sheetNameToLoad) {
+                        $sheetInfo = $worksheetInfo;
+                        break;
+                    }
+                }
+                if ($sheetInfo === null) {
+                    throw new RuntimeException('Informasi sheet Excel tidak dapat dibaca.');
+                }
+                $header = find_raw_excel_sheet_header(
+                    $filePath,
+                    $sheetNameToLoad,
+                    $jenis,
+                    (int)$sheetInfo['totalRows']
+                );
+                unset($reader);
+                gc_collect_cycles();
+
+                $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($filePath);
                 $reader->setReadDataOnly(true);
                 $reader->setReadEmptyCells(false);
                 $reader->setLoadSheetsOnly([$sheetNameToLoad]);
+                $reader->setReadFilter(new RawExcelImportReadFilter(
+                    $header['row'],
+                    (int)$sheetInfo['totalRows'],
+                    array_values($header['columns'])
+                ));
                 $spreadsheet = $reader->load($filePath);
-                $entries = aggregate_raw_excel_sheet($spreadsheet->getSheet(0), $jenis);
+                $entries = aggregate_raw_excel_sheet($spreadsheet->getSheet(0), $jenis, $header['row']);
                 if (empty($entries)) {
                     throw new RuntimeException('Tidak ditemukan baris data komoditas pada Excel.');
                 }

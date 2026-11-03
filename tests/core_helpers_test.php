@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../includes/period_aggregation.php';
 require_once __DIR__ . '/../includes/raw_excel_import.php';
 
@@ -101,6 +102,12 @@ expect_core_same(
     'The Excel importer should accept the origin-country header for imports.'
 );
 expect_core_same(null, raw_excel_detect_columns(['Komoditas', 'Volume'], 'ekspor'), 'Incomplete Excel headers should be rejected.');
+
+$readFilter = new RawExcelImportReadFilter(8, 12, [35, 40]);
+expect_core_same(true, $readFilter->readCell('AJ', 8), 'The Excel filter should include required columns at the header row.');
+expect_core_same(true, $readFilter->readCell('AO', 12), 'The Excel filter should include required columns in data rows.');
+expect_core_same(false, $readFilter->readCell('AK', 9), 'The Excel filter should exclude unrelated columns.');
+expect_core_same(false, $readFilter->readCell('AJ', 13), 'The Excel filter should exclude rows outside its range.');
 
 $mergedEntries = merge_raw_excel_entries(
     [[
