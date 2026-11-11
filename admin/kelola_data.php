@@ -136,6 +136,15 @@ if ($periodeA !== '' && $periodeB !== '') {
     $sql .= " AND periode >= :periode_awal AND periode <= :periode_akhir AND periode REGEXP '^[0-9]{4}-(0[1-9]|1[0-2])$'";
     $params[':periode_awal'] = $rangeStart;
     $params[':periode_akhir'] = $rangeEnd;
+    $sql .= " AND EXISTS (
+        SELECT 1 FROM ekspor_komoditas end_period
+        WHERE end_period.jenis_kegiatan = :jenis_akhir
+            AND end_period.kategori = :kategori_akhir
+            AND end_period.periode = :periode_akhir_data
+    )";
+    $params[':jenis_akhir'] = $jenis;
+    $params[':kategori_akhir'] = $kategori;
+    $params[':periode_akhir_data'] = $rangeEnd;
 } else {
     $sql .= " AND 1 = 0";
 }

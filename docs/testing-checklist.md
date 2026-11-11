@@ -35,7 +35,9 @@ Jalankan di database pengujian atau salinan data yang sudah dicadangkan. Hindari
 - Buka board tanpa filter dan periksa tampilan untuk kategori hewan, ikan, dan tumbuhan.
 - Ganti jenis lalu lintas: domestik masuk, domestik keluar, ekspor, impor.
 - Ubah periode A/B dan pastikan daftar, ringkasan, grafik, serta label periode mengikuti pilihan.
+- Pastikan rentang dengan data pada bulan akhir menampilkan agregat; jika bulan akhir belum memiliki data, hasil rentang harus kosong. Bulan kosong di tengah rentang tidak membatalkan agregat.
 - Ubah urutan, jumlah Top, dan kategori; pastikan filter tidak kehilangan pilihan penting.
+- Pastikan rentang dengan data pada bulan akhir menampilkan baris agregat; jika bulan akhir belum memiliki data, hasil rentang harus kosong. Bulan kosong di tengah rentang tetap diperbolehkan.
 - Periksa agregasi nama komoditas awalan Burung, Ular, Vaksin, dan Ayam; Sarang Burung Walet harus tetap terpisah.
 - Periksa keadaan tanpa data, tombol cetak, dan layout layar kecil.
 - Cetak board ke PDF A4 landscape; pastikan logo, judul, periode, KPI, panel, serta grafik terbaca dan tidak terpotong. Isi boleh berlanjut ke halaman berikutnya bila tidak muat.

@@ -190,6 +190,14 @@ if ($comparisonPage && $compareMode) {
     $sql .= " AND periode REGEXP '^[0-9]{4}-[0-9]{2}$' AND periode >= ? AND periode <= ?";
     $queryParams[] = $rentangPeriodeAwal;
     $queryParams[] = $rentangPeriodeAkhir;
+    $sql .= " AND EXISTS (
+        SELECT 1 FROM ekspor_komoditas end_period
+        WHERE end_period.jenis_kegiatan = ? AND end_period.kategori = ?
+            AND end_period.periode = ? AND end_period.is_published = 1
+    )";
+    $queryParams[] = $jenis;
+    $queryParams[] = $kategori;
+    $queryParams[] = $rentangPeriodeAkhir;
 } else {
     $sql .= " AND 1 = 0";
 }
