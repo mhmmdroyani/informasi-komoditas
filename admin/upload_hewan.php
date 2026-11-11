@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- Kalender Pemilihan Bulan Data -->
                 <div class="card card-pad" style="background: var(--bg);">
                     <label class="field-label" style="display: block; margin-bottom: 12px;">Pilih Bulan Data <span style="color: var(--danger);">*</span></label>
-                    <input type="month" name="periode" value="<?= date('Y-m') ?>" required class="field-input">
+                    <input type="month" name="periode" value="<?= date('Y-m', strtotime('first day of last month')) ?>" required class="field-input">
                     <p class="field-hint">Satu file Excel mentah direkap untuk satu bulan yang dipilih.</p>
                 </div>
 
