@@ -42,7 +42,7 @@ a {
 }
 
 .admin-main {
-  max-width: 1180px;
+  max-width: none;
   margin: 0 auto;
   padding: 28px 20px 60px;
 }
