@@ -48,7 +48,11 @@ $activities = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php else: ?>
                             <?php foreach ($activities as $activity): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars(date('d/m/Y H:i:s', strtotime($activity['created_at']))) ?></td>
+                                    <td><?= htmlspecialchars(
+                                        (new DateTimeImmutable($activity['created_at'], new DateTimeZone('UTC')))
+                                            ->setTimezone(new DateTimeZone('Asia/Makassar'))
+                                            ->format('d/m/Y H:i:s')
+                                    ) ?></td>
                                     <td><?= htmlspecialchars($activity['username']) ?></td>
                                     <td><span class="badge badge-neutral"><?= htmlspecialchars($activity['action']) ?></span></td>
                                     <td><?= htmlspecialchars($activity['description']) ?></td>

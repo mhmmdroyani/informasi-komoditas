@@ -20,8 +20,8 @@ function log_admin_activity(
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO admin_activity_logs (admin_id, username, action, description, ip_address)
-         VALUES (?, ?, ?, ?, ?)'
+        'INSERT INTO admin_activity_logs (admin_id, username, action, description, ip_address, created_at)
+         VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())'
     );
     $stmt->execute([$adminId, $username, $action, $description, $ipAddress]);
 }
