@@ -2,6 +2,7 @@
 // admin/edit_data.php
 require_once __DIR__ . '/../config/koneksi.php';
 require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../includes/admin_activity.php';
 require_admin();
 
 $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
@@ -62,6 +63,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id
         ]);
 
+        log_admin_activity(
+            $pdo,
+            'edit_data',
+            sprintf('Mengubah data komoditas ID %d (%s/%s).', $id, $row['kategori'], $row['jenis_kegiatan'])
+        );
         header('Location: kelola_data.php?jenis=' . urlencode($row['jenis_kegiatan']) . '&kategori=' . urlencode($row['kategori']) . '&msg=edit_sukses');
         exit;
     }

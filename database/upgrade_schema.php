@@ -89,6 +89,30 @@ try {
         }
     }
 
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ekspor_nihil (
+        jenis_kegiatan ENUM('ekspor','impor','domestik_keluar','domestik_masuk') NOT NULL,
+        kategori ENUM('hewan','ikan','tumbuhan') NOT NULL,
+        periode CHAR(7) NOT NULL,
+        marked_by INT NULL,
+        marked_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (jenis_kegiatan, kategori, periode),
+        INDEX idx_nihil_periode (periode)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    echo " - Tabel ekspor_nihil tersedia.\n";
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS admin_activity_logs (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        admin_id INT NULL,
+        username VARCHAR(100) NOT NULL,
+        action VARCHAR(64) NOT NULL,
+        description TEXT NOT NULL,
+        ip_address VARCHAR(45) NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_activity_created_at (created_at),
+        INDEX idx_activity_admin_id (admin_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    echo " - Tabel admin_activity_logs tersedia.\n";
+
     echo "MIGRASI BERHASIL!\n";
 } catch (Exception $e) {
     echo "MIGRASI GAGAL: " . $e->getMessage() . "\n";

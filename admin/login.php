@@ -2,6 +2,7 @@
 // admin/login.php
 require_once '../config/koneksi.php';
 require_once '../config/auth.php';
+require_once __DIR__ . '/../includes/admin_activity.php';
 
 if (is_logged_in()) {
     header('Location: index.php');
@@ -29,10 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['admin_username'] = $user['username'];
             $_SESSION['admin_nama'] = $user['nama'];
             $_SESSION['admin_role'] = $user['role'] ?? 'admin';
+            log_admin_activity($pdo, 'login', 'Berhasil masuk ke panel admin.');
             
             header('Location: index.php');
             exit;
         } else {
+            log_admin_activity($pdo, 'login_gagal', 'Percobaan login gagal.');
             $error = 'Username atau password salah!';
         }
     }

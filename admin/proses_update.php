@@ -2,6 +2,7 @@
 // admin/proses_update.php
 require_once __DIR__ . '/../config/koneksi.php';
 require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../includes/admin_activity.php';
 require_admin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -97,6 +98,18 @@ try {
         }
     }
 
+    log_admin_activity(
+        $pdo,
+        'publish_data',
+        sprintf(
+            'Memperbarui status publikasi %s/%s periode %s–%s; %d baris dipublikasikan.',
+            $kategori,
+            $jenis,
+            trim($_POST['periode_a'] ?? $periode),
+            trim($_POST['periode_b'] ?? $periode),
+            count($publishedIds)
+        )
+    );
     $pdo->commit();
 
     $publishedCount = count($publishedIds);

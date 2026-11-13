@@ -53,6 +53,9 @@ $cal = parse_calendar_filter($filterMode, $calInput);
 $periodeStmt = $pdo->prepare("SELECT DISTINCT periode FROM ekspor_komoditas WHERE jenis_kegiatan = ? AND kategori = ? ORDER BY periode ASC");
 $periodeStmt->execute([$jenis, $kategori]);
 $periodeOptions = $periodeStmt->fetchAll(PDO::FETCH_COLUMN);
+$nihilPeriodsStmt = $pdo->prepare('SELECT periode FROM ekspor_nihil WHERE jenis_kegiatan = ? AND kategori = ?');
+$nihilPeriodsStmt->execute([$jenis, $kategori]);
+$periodeOptions = array_merge($periodeOptions, $nihilPeriodsStmt->fetchAll(PDO::FETCH_COLUMN));
 
 // Backward compatibility: a single `periode` value selects that month for both endpoints.
 $legacyPeriod = trim($_GET['periode'] ?? '');
@@ -115,6 +118,12 @@ $periodeFilter = $periodeB;
 $aggregateMode = $periodeA !== '' && $periodeB !== '' && $periodeA !== $periodeB;
 $rangeStart = $periodeA !== '' && $periodeB !== '' ? min($periodeA, $periodeB) : '';
 $rangeEnd = $periodeA !== '' && $periodeB !== '' ? max($periodeA, $periodeB) : '';
+$nihilEndPeriodStmt = $pdo->prepare(
+    'SELECT 1 FROM ekspor_nihil WHERE jenis_kegiatan = ? AND kategori = ? AND periode = ? LIMIT 1'
+);
+$nihilEndPeriodStmt->execute([$jenis, $kategori, $rangeEnd]);
+$endPeriodIsNihil = (bool)$nihilEndPeriodStmt->fetchColumn();
+$endPeriodLabel = format_label_periode_kode($rangeEnd) ?: $rangeEnd;
 $rangePeriodLabel = $rangeStart === $rangeEnd
     ? (format_label_periode_kode($rangeStart) ?: $rangeStart)
     : ((format_label_periode_kode($rangeStart) ?: $rangeStart) . ' - ' . (format_label_periode_kode($rangeEnd) ?: $rangeEnd));
@@ -141,10 +150,18 @@ if ($periodeA !== '' && $periodeB !== '') {
         WHERE end_period.jenis_kegiatan = :jenis_akhir
             AND end_period.kategori = :kategori_akhir
             AND end_period.periode = :periode_akhir_data
+        UNION ALL
+        SELECT 1 FROM ekspor_nihil end_nihil
+        WHERE end_nihil.jenis_kegiatan = :jenis_nihil
+            AND end_nihil.kategori = :kategori_nihil
+            AND end_nihil.periode = :periode_nihil
     )";
     $params[':jenis_akhir'] = $jenis;
     $params[':kategori_akhir'] = $kategori;
     $params[':periode_akhir_data'] = $rangeEnd;
+    $params[':jenis_nihil'] = $jenis;
+    $params[':kategori_nihil'] = $kategori;
+    $params[':periode_nihil'] = $rangeEnd;
 } else {
     $sql .= " AND 1 = 0";
 }
@@ -199,7 +216,7 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                 <h1 class="page-title">Kelola Data & Publikasi Board</h1>
             </div>
             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                <a href="../embed/board.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori, 'periode_a' => $periodeA, 'periode_b' => $periodeB]), ENT_QUOTES, 'UTF-8') ?>" target="_self" class="btn btn-outline-brand">
+                <a href="../embed/board.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori, 'periode_a' => $periodeA, 'periode_b' => $periodeB]), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-brand">
                     <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                     <span>Preview Board (<?= ucfirst($kategori) ?>)</span>
                 </a>
@@ -217,7 +234,7 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                     <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     <span><strong>Tampilan board berhasil diperbarui!</strong> Sebanyak <strong><?= htmlspecialchars($pubCount) ?> data</strong> kini berstatus dipublikasikan.</span>
                 </div>
-                <a href="../embed/board.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori, 'periode_a' => $periodeA, 'periode_b' => $periodeB]), ENT_QUOTES, 'UTF-8') ?>" target="_self" style="font-size: 12px; font-weight: 600; white-space: nowrap;">Lihat Board &rarr;</a>
+                <a href="../embed/board.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori, 'periode_a' => $periodeA, 'periode_b' => $periodeB]), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 600; white-space: nowrap;">Lihat Board &rarr;</a>
             </div>
         <?php elseif ($msg === 'hapus_sukses'): ?>
             <div class="alert alert-warning" style="margin-bottom: 16px;">
@@ -323,6 +340,12 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
 
         </form>
 
+            <?php if ($endPeriodIsNihil && $rangeEnd !== ''): ?>
+                <div class="alert alert-warning nihil-period-notice" role="status">
+                    Periode <?= htmlspecialchars($endPeriodLabel) ?> ditandai Nihil.
+                </div>
+            <?php endif; ?>
+
             <!-- Tabel Data Komoditas -->
             <div class="kelola-data-print-header">
                 <h1>Data Komoditas Karantina</h1>
@@ -355,10 +378,6 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                         </div>
                     </div>
                     <div class="kelola-data-toolbar-right" style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-left: auto;">
-                        <a href="tambah_data.php?jenis=<?= urlencode($jenis) ?>&kategori=<?= urlencode($kategori) ?>" class="btn btn-primary btn-sm">
-                            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"></path></svg>
-                            <span>Tambah Data</span>
-                        </a>
                         <?php if ($periodeA !== '' && $periodeB !== ''): ?>
                             <a href="export_kelola_data.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori, 'periode_a' => $periodeA, 'periode_b' => $periodeB]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-brand btn-sm">
                                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"></path></svg>
@@ -400,9 +419,17 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                             <?php if (empty($dataItems)): ?>
                                 <tr>
                                     <td colspan="13" style="padding: 48px 12px; text-align: center; color: var(--ink-muted);">
-                                        <p style="font-weight: 600; color: var(--ink-soft); font-size: 13px;">Belum ada data <?= strtolower($labelKegiatan) ?> untuk komoditas <?= $kategori ?>.</p>
-                                        <p style="font-size: 12px; margin: 4px 0 14px;">Silakan upload file Excel melalui form upload.</p>
-                                        <a href="upload_<?= $kategori ?>.php?jenis=<?= $jenis ?>" class="btn btn-primary btn-sm">Upload Excel <?= ucfirst($kategori) ?> Sekarang</a>
+                                        <?php if ($endPeriodIsNihil && $rangeEnd !== ''): ?>
+                                            <p style="font-weight: 600; color: var(--ink-soft); font-size: 13px;">Periode <?= htmlspecialchars($endPeriodLabel) ?> ditandai Nihil; tidak ada data komoditas.</p>
+                                        <?php elseif ($rangeEnd !== ''): ?>
+                                            <p style="font-weight: 600; color: var(--ink-soft); font-size: 13px;">Data pada bulan <?= htmlspecialchars($endPeriodLabel) ?> Belum di Upload.</p>
+                                            <p style="font-size: 12px; margin: 4px 0 14px;">Silakan upload file Excel atau tandai periode tersebut sebagai Nihil.</p>
+                                            <a href="upload_<?= $kategori ?>.php?jenis=<?= $jenis ?>" class="btn btn-primary btn-sm">Upload Excel <?= ucfirst($kategori) ?> Sekarang</a>
+                                        <?php else: ?>
+                                            <p style="font-weight: 600; color: var(--ink-soft); font-size: 13px;">Belum ada data <?= strtolower($labelKegiatan) ?> untuk komoditas <?= htmlspecialchars($kategori) ?>.</p>
+                                            <p style="font-size: 12px; margin: 4px 0 14px;">Silakan upload file Excel melalui form upload.</p>
+                                            <a href="upload_<?= $kategori ?>.php?jenis=<?= $jenis ?>" class="btn btn-primary btn-sm">Upload Excel <?= ucfirst($kategori) ?> Sekarang</a>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php else: ?>
@@ -508,8 +535,31 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
             periode_a: periodeA,
             periode_b: periodeB
         });
+        try {
+            sessionStorage.setItem('kelolaDataFilterScroll', JSON.stringify({
+                path: window.location.pathname,
+                y: window.scrollY,
+                savedAt: Date.now()
+            }));
+        } catch (error) {
+            console.warn('Posisi halaman Kelola Data tidak dapat disimpan.', error);
+        }
         window.location.href = 'kelola_data.php?' + params.toString();
     }
+
+    window.addEventListener('pageshow', function() {
+        try {
+            const saved = JSON.parse(sessionStorage.getItem('kelolaDataFilterScroll') || 'null');
+            sessionStorage.removeItem('kelolaDataFilterScroll');
+            if (saved && saved.path === window.location.pathname && Date.now() - saved.savedAt < 15000) {
+                requestAnimationFrame(function() {
+                    window.scrollTo(0, saved.y);
+                });
+            }
+        } catch (error) {
+            console.warn('Posisi halaman Kelola Data tidak dapat dipulihkan.', error);
+        }
+    });
 
     const kelolaDataActions = document.getElementById('kelolaDataActions');
     const kelolaDataToolbar = document.querySelector('.kelola-data-toolbar-right');

@@ -2,6 +2,7 @@
 // admin/hapus_data.php
 require_once __DIR__ . '/../config/koneksi.php';
 require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../includes/admin_activity.php';
 require_admin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -46,6 +47,7 @@ if ($action === 'batch_ids') {
                AND periode = ?"
         );
         $stmt->execute(array_merge($ids, [$jenis, $kategori, $periode]));
+        log_admin_activity($pdo, 'hapus_data', sprintf('Menghapus %d baris data %s/%s periode %s.', $stmt->rowCount(), $kategori, $jenis, $periode));
     }
 
     $redirectParams = [
@@ -94,19 +96,23 @@ if ($action === 'group_ids') {
                AND periode = ?"
         );
         $stmt->execute(array_merge($ids, [$jenis, $kategori, $periode]));
+        log_admin_activity($pdo, 'hapus_data', sprintf('Menghapus %d baris data %s/%s periode %s.', $stmt->rowCount(), $kategori, $jenis, $periode));
     }
 } elseif ($action === 'single') {
     $id = (int)($_POST['id'] ?? 0);
     if ($id > 0) {
         $stmt = $pdo->prepare("DELETE FROM ekspor_komoditas WHERE id = ?");
         $stmt->execute([$id]);
+        log_admin_activity($pdo, 'hapus_data', sprintf('Menghapus data komoditas ID %d.', $id));
     }
 } elseif ($action === 'batch_periode' && !empty($periode)) {
     $stmt = $pdo->prepare("DELETE FROM ekspor_komoditas WHERE jenis_kegiatan = ? AND kategori = ? AND periode = ?");
     $stmt->execute([$jenis, $kategori, $periode]);
+    log_admin_activity($pdo, 'hapus_data', sprintf('Menghapus %d baris data %s/%s periode %s.', $stmt->rowCount(), $kategori, $jenis, $periode));
 } elseif ($action === 'all_kategori') {
     $stmt = $pdo->prepare("DELETE FROM ekspor_komoditas WHERE jenis_kegiatan = ? AND kategori = ?");
     $stmt->execute([$jenis, $kategori]);
+    log_admin_activity($pdo, 'hapus_data', sprintf('Menghapus seluruh data %s/%s (%d baris).', $kategori, $jenis, $stmt->rowCount()));
 }
 
 $redirectParams = [

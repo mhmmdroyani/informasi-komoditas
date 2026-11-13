@@ -2,6 +2,7 @@
 // admin/tambah_data.php - Input data komoditas secara manual (tanpa upload Excel)
 require_once __DIR__ . '/../config/koneksi.php';
 require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../includes/admin_activity.php';
 require_admin();
 
 $message = '';
@@ -75,6 +76,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $langsungPublish
         ]);
 
+        log_admin_activity(
+            $pdo,
+            'tambah_data',
+            sprintf('Menambahkan data komoditas %s/%s periode %s.', $kategori, $jenis, $periode)
+        );
         $message = 'Data komoditas "' . htmlspecialchars($namaKomoditas) . '" berhasil ditambahkan.';
     }
 }

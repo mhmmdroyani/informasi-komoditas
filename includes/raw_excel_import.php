@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/volume_units.php';
+require_once __DIR__ . '/admin_activity.php';
 
 final class RawExcelImportReadFilter implements \PhpOffice\PhpSpreadsheet\Reader\IReadFilter
 {
@@ -314,6 +315,8 @@ function insert_raw_aggregated_entries($pdo, $jenis, $kategori, $periode, $entri
             $delete = $pdo->prepare('DELETE FROM ekspor_komoditas WHERE jenis_kegiatan = ? AND kategori = ? AND periode = ?');
             $delete->execute([$jenis, $kategori, $periode]);
         }
+        $clearNihil = $pdo->prepare('DELETE FROM ekspor_nihil WHERE jenis_kegiatan = ? AND kategori = ? AND periode = ?');
+        $clearNihil->execute([$jenis, $kategori, $periode]);
 
         $insert = $pdo->prepare('INSERT INTO ekspor_komoditas
             (jenis_kegiatan, kategori, klasifikasi, nama_komoditas, frekuensi, volume, satuan, nilai_ekspor, daerah_asal, daerah_tujuan, negara_tujuan, periode, tanggal_mulai, tanggal_selesai, is_published)
@@ -338,6 +341,11 @@ function insert_raw_aggregated_entries($pdo, $jenis, $kategori, $periode, $entri
             ]);
         }
 
+        log_admin_activity(
+            $pdo,
+            'upload_excel',
+            sprintf('Import %d komoditas %s untuk %s (%s).', count($entries), $kategori, $periode, $mode)
+        );
         $pdo->commit();
     } catch (Exception $exception) {
         if ($pdo->inTransaction()) {
@@ -347,6 +355,34 @@ function insert_raw_aggregated_entries($pdo, $jenis, $kategori, $periode, $entri
     }
 
     return count($entries);
+}
+
+function mark_raw_excel_month_nihil(PDO $pdo, string $jenis, string $kategori, string $periode): void
+{
+    $existing = $pdo->prepare(
+        'SELECT COUNT(*) FROM ekspor_komoditas WHERE jenis_kegiatan = ? AND kategori = ? AND periode = ?'
+    );
+    $existing->execute([$jenis, $kategori, $periode]);
+    if ((int)$existing->fetchColumn() > 0) {
+        throw new RuntimeException('Bulan ini masih memiliki data. Hapus data bulan tersebut sebelum menandainya sebagai Nihil.');
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare(
+            'INSERT INTO ekspor_nihil (jenis_kegiatan, kategori, periode, marked_by)
+             VALUES (?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE marked_by = VALUES(marked_by), marked_at = CURRENT_TIMESTAMP'
+        );
+        $stmt->execute([$jenis, $kategori, $periode, $_SESSION['admin_id'] ?? null]);
+        log_admin_activity($pdo, 'tandai_nihil', sprintf('Menandai %s untuk %s periode %s sebagai Nihil.', $kategori, $jenis, $periode));
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
 }
 
 function handle_raw_excel_upload($pdo, $kategori, array $databaseConfig)
@@ -364,6 +400,15 @@ function handle_raw_excel_upload($pdo, $kategori, array $databaseConfig)
     if (!preg_match('/^(\d{4})-(\d{2})$/', $periode, $matches)
         || !checkdate((int)$matches[2], 1, (int)$matches[1])) {
         $error = 'Pilih satu bulan dan tahun data yang valid.';
+    } elseif (isset($_POST['nihil']) && $_POST['nihil'] === '1') {
+        try {
+            $pdo = create_database_connection($databaseConfig);
+            mark_raw_excel_month_nihil($pdo, $jenis, $kategori, $periode);
+            $message = 'Periode ' . (format_label_periode_kode($periode) ?: $periode) . ' ditandai Nihil.';
+        } catch (Throwable $exception) {
+            error_log('SILAKOM nihil month update failed: ' . $exception->getMessage());
+            $error = $exception->getMessage();
+        }
     } elseif (!isset($_FILES['file_excel']) || $_FILES['file_excel']['error'] !== UPLOAD_ERR_OK) {
         $error = 'Pilih file Excel mentah yang valid untuk diunggah.';
     } else {

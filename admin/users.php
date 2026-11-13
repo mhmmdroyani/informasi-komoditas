@@ -2,6 +2,7 @@
 // admin/users.php - Kelola Pengguna (khusus role admin)
 require_once __DIR__ . '/../config/koneksi.php';
 require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../includes/admin_activity.php';
 require_role_admin();
 
 $me = current_admin();
@@ -32,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $pdo->prepare("UPDATE admin_users SET username = ?, nama = ?, role = ? WHERE id = ?");
                     $stmt->execute([$username, $nama, $role, $id]);
                 }
+                log_admin_activity($pdo, 'edit_pengguna', sprintf('Memperbarui akun pengguna %s (ID %d).', $username, $id));
                 $msg = 'Data pengguna berhasil diperbarui.';
             } else {
                 if (empty($password)) {
@@ -44,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } else {
                         $stmt = $pdo->prepare("INSERT INTO admin_users (username, password, nama, role) VALUES (?, ?, ?, ?)");
                         $stmt->execute([$username, password_hash($password, PASSWORD_DEFAULT), $nama, $role]);
+                        log_admin_activity($pdo, 'tambah_pengguna', sprintf('Menambahkan akun pengguna %s.', $username));
                         $msg = 'Pengguna baru berhasil ditambahkan.';
                     }
                 }
@@ -52,16 +55,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($formAction === 'toggle_active') {
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0 && $id !== (int)$me['id']) {
-            $pdo->prepare("UPDATE admin_users SET is_active = 1 - is_active WHERE id = ?")->execute([$id]);
-            $msg = 'Status pengguna berhasil diubah.';
+            $stmt = $pdo->prepare('SELECT username, is_active FROM admin_users WHERE id = ?');
+            $stmt->execute([$id]);
+            $target = $stmt->fetch();
+            if ($target) {
+                $pdo->prepare("UPDATE admin_users SET is_active = 1 - is_active WHERE id = ?")->execute([$id]);
+                log_admin_activity($pdo, 'ubah_status_pengguna', sprintf('Mengubah status akun %s.', $target['username']));
+                $msg = 'Status pengguna berhasil diubah.';
+            } else {
+                $error = 'Pengguna tidak ditemukan.';
+            }
         } else {
             $error = 'Anda tidak dapat menonaktifkan akun sendiri.';
         }
     } elseif ($formAction === 'delete') {
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0 && $id !== (int)$me['id']) {
-            $pdo->prepare("DELETE FROM admin_users WHERE id = ?")->execute([$id]);
-            $msg = 'Pengguna berhasil dihapus.';
+            $stmt = $pdo->prepare('SELECT username FROM admin_users WHERE id = ?');
+            $stmt->execute([$id]);
+            $targetUsername = $stmt->fetchColumn();
+            if ($targetUsername !== false) {
+                $pdo->prepare("DELETE FROM admin_users WHERE id = ?")->execute([$id]);
+                log_admin_activity($pdo, 'hapus_pengguna', sprintf('Menghapus akun pengguna %s.', $targetUsername));
+                $msg = 'Pengguna berhasil dihapus.';
+            } else {
+                $error = 'Pengguna tidak ditemukan.';
+            }
         } else {
             $error = 'Anda tidak dapat menghapus akun sendiri.';
         }
@@ -112,7 +131,7 @@ $users = $pdo->query("SELECT * FROM admin_users ORDER BY id ASC")->fetchAll();
             </div>
         <?php endif; ?>
 
-        <div style="display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 20px; align-items: start;">
+        <div class="users-layout">
             <!-- Form Tambah / Edit -->
             <div class="card card-pad">
                 <h2 style="font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 14px;">
@@ -140,8 +159,16 @@ $users = $pdo->query("SELECT * FROM admin_users ORDER BY id ASC")->fetchAll();
                         <p class="field-hint">User biasa tidak dapat mengakses Kelola Pengguna.</p>
                     </div>
                     <div>
-                        <label class="field-label">Password <?= $editUser ? '(kosongkan jika tidak diubah)' : '<span style="color: var(--danger);">*</span>' ?></label>
-                        <input type="password" name="password" class="field-input" autocomplete="new-password">
+                        <label class="field-label" for="userPassword">Password baru <?= $editUser ? '(kosongkan jika tidak diubah)' : '<span style="color: var(--danger);">*</span>' ?></label>
+                        <div class="password-field-wrap">
+                            <input type="password" id="userPassword" name="password" class="field-input" autocomplete="new-password">
+                            <button type="button" class="password-toggle-btn" id="toggleUserPassword" aria-label="Tampilkan password baru">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                        </div>
+                        <?php if ($editUser): ?>
+                            <p class="field-hint">Password tersimpan aman sebagai hash, jadi password lama tidak dapat ditampilkan. Isi hanya jika ingin menggantinya.</p>
+                        <?php endif; ?>
                     </div>
 
                     <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--line);">
@@ -219,5 +246,13 @@ $users = $pdo->query("SELECT * FROM admin_users ORDER BY id ASC")->fetchAll();
             </div>
         </div>
     </div>
+    <script>
+    document.getElementById('toggleUserPassword').addEventListener('click', function() {
+        const input = document.getElementById('userPassword');
+        const showPassword = input.type === 'password';
+        input.type = showPassword ? 'text' : 'password';
+        this.setAttribute('aria-label', showPassword ? 'Sembunyikan password baru' : 'Tampilkan password baru');
+    });
+    </script>
 </body>
 </html>

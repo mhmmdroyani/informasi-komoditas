@@ -77,28 +77,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label class="field-label">Pilih Jenis Lalu Lintas Karantina <span style="color: var(--danger);">*</span></label>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
                         <label class="radio-card">
-                            <input type="radio" name="jenis_kegiatan" value="domestik_masuk" onchange="window.location.href='?jenis='+this.value" <?= $currentJenis === 'domestik_masuk' ? 'checked' : '' ?>>
+                            <input type="radio" name="jenis_kegiatan" value="domestik_masuk" onchange="navigateAdminFilter('?jenis='+encodeURIComponent(this.value))" <?= $currentJenis === 'domestik_masuk' ? 'checked' : '' ?>>
                             <div>
                                 <div class="title">Domestik Masuk</div>
                                 <div class="sub">Masuk Kalsel (Antar-Area)</div>
                             </div>
                         </label>
                         <label class="radio-card">
-                            <input type="radio" name="jenis_kegiatan" value="domestik_keluar" onchange="window.location.href='?jenis='+this.value" <?= $currentJenis === 'domestik_keluar' ? 'checked' : '' ?>>
+                            <input type="radio" name="jenis_kegiatan" value="domestik_keluar" onchange="navigateAdminFilter('?jenis='+encodeURIComponent(this.value))" <?= $currentJenis === 'domestik_keluar' ? 'checked' : '' ?>>
                             <div>
                                 <div class="title">Domestik Keluar</div>
                                 <div class="sub">Keluar Kalsel (Antar-Area)</div>
                             </div>
                         </label>
                         <label class="radio-card">
-                            <input type="radio" name="jenis_kegiatan" value="ekspor" onchange="window.location.href='?jenis='+this.value" <?= $currentJenis === 'ekspor' ? 'checked' : '' ?>>
+                            <input type="radio" name="jenis_kegiatan" value="ekspor" onchange="navigateAdminFilter('?jenis='+encodeURIComponent(this.value))" <?= $currentJenis === 'ekspor' ? 'checked' : '' ?>>
                             <div>
                                 <div class="title">Ekspor</div>
                                 <div class="sub">Ke Luar Negeri</div>
                             </div>
                         </label>
                         <label class="radio-card">
-                            <input type="radio" name="jenis_kegiatan" value="impor" onchange="window.location.href='?jenis='+this.value" <?= $currentJenis === 'impor' ? 'checked' : '' ?>>
+                            <input type="radio" name="jenis_kegiatan" value="impor" onchange="navigateAdminFilter('?jenis='+encodeURIComponent(this.value))" <?= $currentJenis === 'impor' ? 'checked' : '' ?>>
                             <div>
                                 <div class="title">Impor</div>
                                 <div class="sub">Dari Luar Negeri</div>
@@ -137,7 +137,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- File Excel -->
                 <div>
                     <label class="field-label">Pilih File Excel (.xlsx / .xls) <span style="color: var(--danger);">*</span></label>
-                    <input type="file" name="file_excel" required accept=".xlsx, .xls, .csv" class="file-input">
+                    <input type="file" id="fileExcel" name="file_excel" required accept=".xlsx, .xls, .csv" class="file-input">
+                    <label class="nihil-option">
+                        <input type="checkbox" name="nihil" value="1" id="markNihil">
+                        <span><strong>Nihil</strong><small>Tandai bulan ini sudah diperiksa dan tidak ada data.</small></span>
+                    </label>
                 </div>
 
                 <!-- Opsi Mode & Publish -->
@@ -173,5 +177,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         </div>
     </div>
+    <script>
+    (() => {
+        const nihil = document.getElementById('markNihil');
+        const file = document.getElementById('fileExcel');
+        nihil.addEventListener('change', () => {
+            file.disabled = nihil.checked;
+            file.required = !nihil.checked;
+            if (nihil.checked) file.value = '';
+        });
+    })();
+    </script>
 </body>
 </html>

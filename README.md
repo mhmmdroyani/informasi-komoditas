@@ -7,6 +7,7 @@ Aplikasi PHP untuk mengelola data lalu lintas komoditas karantina Kalimantan Sel
 - Board publik untuk lalu lintas domestik masuk/keluar, ekspor, dan impor.
 - Ringkasan, grafik komoditas, filter periode bulanan, dan Mode Grafik tren bulanan antar tahun.
 - Panel admin untuk mengimpor data Excel kategori hewan, ikan, dan tumbuhan.
+- Penanda periode Nihil untuk bulan tanpa data dan log aktivitas admin.
 - Kelola data untuk meninjau, mengubah, menerbitkan, menghapus, menambah, dan mengekspor data.
 - Pengelolaan akun admin dan peran pengguna.
 
@@ -31,6 +32,8 @@ Aplikasi PHP untuk mengelola data lalu lintas komoditas karantina Kalimantan Sel
 5. Masuk ke halaman admin melalui tombol **Login** pada board publik.
 
 Skrip di `database/` hanya boleh dijalankan melalui CLI. Jangan gunakan skrip reset pada database produksi. Petunjuk penanganan kredensial dan deploy aman ada di [docs/security-operations.md](docs/security-operations.md).
+
+Untuk database yang sudah ada, buat cadangan database lalu jalankan `php database\upgrade_schema.php` melalui PHP CLI sebelum menggunakan fitur Nihil dan Log Aktivitas. Migrasi ini menambahkan tabel yang dibutuhkan tanpa menghapus data lama.
 
 ## Alur penggunaan
 

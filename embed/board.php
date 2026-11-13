@@ -42,6 +42,11 @@ $periodeStmt = $pdo->prepare("SELECT DISTINCT periode FROM ekspor_komoditas WHER
 $periodeStmt->execute([$jenis, $kategori]);
 $publishedPeriods = $periodeStmt->fetchAll(PDO::FETCH_COLUMN);
 $periodeOptionSet = array_fill_keys($publishedPeriods, true);
+$nihilPeriodsStmt = $pdo->prepare('SELECT periode FROM ekspor_nihil WHERE jenis_kegiatan = ? AND kategori = ?');
+$nihilPeriodsStmt->execute([$jenis, $kategori]);
+foreach ($nihilPeriodsStmt->fetchAll(PDO::FETCH_COLUMN) as $nihilPeriod) {
+    $periodeOptionSet[$nihilPeriod] = true;
+}
 
 $tanggalAwal = (string)($setting['tanggal_awal'] ?? '');
 $tanggalAkhir = (string)($setting['tanggal_akhir'] ?? '');
@@ -92,6 +97,12 @@ if (!in_array($periodeB, $periodeOptions, true)) $periodeB = $periodeOptions[cou
 $rentangPeriodeAwal = min($periodeA, $periodeB);
 $rentangPeriodeAkhir = max($periodeA, $periodeB);
 $periodeFilter = $periodeB;
+$endPeriodLabel = format_label_periode_kode($rentangPeriodeAkhir) ?: $rentangPeriodeAkhir;
+$nihilEndPeriodStmt = $pdo->prepare(
+    'SELECT 1 FROM ekspor_nihil WHERE jenis_kegiatan = ? AND kategori = ? AND periode = ? LIMIT 1'
+);
+$nihilEndPeriodStmt->execute([$jenis, $kategori, $rentangPeriodeAkhir]);
+$endPeriodIsNihil = (bool)$nihilEndPeriodStmt->fetchColumn();
 $yearOptions = published_comparison_years($publishedPeriods);
 $comparisonYearA = trim($_GET['tahun_a'] ?? substr($periodeA, 0, 4));
 $comparisonYearB = trim($_GET['tahun_b'] ?? substr($periodeB, 0, 4));
@@ -194,7 +205,14 @@ if ($comparisonPage && $compareMode) {
         SELECT 1 FROM ekspor_komoditas end_period
         WHERE end_period.jenis_kegiatan = ? AND end_period.kategori = ?
             AND end_period.periode = ? AND end_period.is_published = 1
+        UNION ALL
+        SELECT 1 FROM ekspor_nihil end_nihil
+        WHERE end_nihil.jenis_kegiatan = ? AND end_nihil.kategori = ?
+            AND end_nihil.periode = ?
     )";
+    $queryParams[] = $jenis;
+    $queryParams[] = $kategori;
+    $queryParams[] = $rentangPeriodeAkhir;
     $queryParams[] = $jenis;
     $queryParams[] = $kategori;
     $queryParams[] = $rentangPeriodeAkhir;
@@ -479,6 +497,34 @@ function formatVolumeOtomatis($volume, $satuan) {
     <title><?= $labelKegiatan ?> Komoditas Karantina <?= $labelKategori ?> - Balai Karantina Kalimantan Selatan</title>
     <link rel="stylesheet" href="<?= $assetPath ?>embed.css?v=<?= @filemtime(__DIR__ . '/embed.css') ?: time() ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+    (() => {
+        const key = 'boardFilterScroll';
+        window.navigateBoardFilter = function(url) {
+            try {
+                sessionStorage.setItem(key, JSON.stringify({
+                    path: window.location.pathname,
+                    y: window.scrollY,
+                    savedAt: Date.now()
+                }));
+            } catch (error) {
+                console.warn('Posisi board tidak dapat disimpan.', error);
+            }
+            window.location.href = url;
+        };
+        window.addEventListener('pageshow', () => {
+            try {
+                const saved = JSON.parse(sessionStorage.getItem(key) || 'null');
+                sessionStorage.removeItem(key);
+                if (saved && saved.path === window.location.pathname && Date.now() - saved.savedAt < 15000) {
+                    requestAnimationFrame(() => window.scrollTo(0, saved.y));
+                }
+            } catch (error) {
+                console.warn('Posisi board sebelumnya tidak dapat dipulihkan.', error);
+            }
+        });
+    })();
+    </script>
     <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
@@ -576,7 +622,7 @@ foreach ($periodeOptions as $periodOption) {
         <div class="board-hero-controls">
             <label class="hero-select-field">
                 <span class="hero-filter-label">Lalu Lintas</span>
-                <select name="jenis" id="selectJenis" onchange="window.location.href = this.value" aria-label="Pilih lalu lintas">
+                <select name="jenis" id="selectJenis" onchange="navigateBoardFilter(this.value)" aria-label="Pilih lalu lintas">
                     <option value="?jenis=domestik_masuk&kategori=<?= $kategori ?><?= $urlParamsExtra ?>" <?= $jenis === 'domestik_masuk' ? 'selected' : '' ?>>Domestik Masuk</option>
                     <option value="?jenis=domestik_keluar&kategori=<?= $kategori ?><?= $urlParamsExtra ?>" <?= $jenis === 'domestik_keluar' ? 'selected' : '' ?>>Domestik Keluar</option>
                     <option value="?jenis=ekspor&kategori=<?= $kategori ?><?= $urlParamsExtra ?>" <?= $jenis === 'ekspor' ? 'selected' : '' ?>>Ekspor</option>
@@ -586,7 +632,7 @@ foreach ($periodeOptions as $periodOption) {
 
             <label class="hero-select-field">
                 <span class="hero-filter-label">Komoditas</span>
-                <select name="kategori" id="selectKategori" onchange="window.location.href = this.value" aria-label="Pilih komoditas">
+                <select name="kategori" id="selectKategori" onchange="navigateBoardFilter(this.value)" aria-label="Pilih komoditas">
                     <option value="?jenis=<?= $jenis ?>&kategori=hewan<?= $urlParamsExtra ?>" <?= $kategori === 'hewan' ? 'selected' : '' ?>>Hewan</option>
                     <option value="?jenis=<?= $jenis ?>&kategori=ikan<?= $urlParamsExtra ?>" <?= $kategori === 'ikan' ? 'selected' : '' ?>>Ikan</option>
                     <option value="?jenis=<?= $jenis ?>&kategori=tumbuhan<?= $urlParamsExtra ?>" <?= $kategori === 'tumbuhan' ? 'selected' : '' ?>>Tumbuhan</option>
@@ -596,7 +642,7 @@ foreach ($periodeOptions as $periodOption) {
             <?php if ($comparisonPage): ?>
                 <label class="hero-select-field">
                     <span class="hero-filter-label">Tahun Awal</span>
-                    <select name="tahun_a" aria-label="Pilih tahun awal grafik" onchange="window.location.href = this.value" <?= empty($yearOptions) ? 'disabled' : '' ?>>
+                    <select name="tahun_a" aria-label="Pilih tahun awal grafik" onchange="navigateBoardFilter(this.value)" <?= empty($yearOptions) ? 'disabled' : '' ?>>
                         <?php foreach ($yearOptions as $yearOption): ?>
                             <option value="<?= htmlspecialchars($comparisonYearAUrls[$yearOption], ENT_QUOTES, 'UTF-8') ?>" <?= $comparisonYearA === $yearOption ? 'selected' : '' ?>><?= htmlspecialchars($yearOption) ?></option>
                         <?php endforeach; ?>
@@ -608,7 +654,7 @@ foreach ($periodeOptions as $periodOption) {
 
                 <label class="hero-select-field">
                     <span class="hero-filter-label">Tahun Akhir</span>
-                    <select name="tahun_b" aria-label="Pilih tahun akhir grafik" onchange="window.location.href = this.value" <?= empty($yearOptions) ? 'disabled' : '' ?>>
+                    <select name="tahun_b" aria-label="Pilih tahun akhir grafik" onchange="navigateBoardFilter(this.value)" <?= empty($yearOptions) ? 'disabled' : '' ?>>
                         <?php foreach ($yearOptions as $yearOption): ?>
                             <option value="<?= htmlspecialchars($comparisonYearBUrls[$yearOption], ENT_QUOTES, 'UTF-8') ?>" <?= $comparisonYearB === $yearOption ? 'selected' : '' ?>><?= htmlspecialchars($yearOption) ?></option>
                         <?php endforeach; ?>
@@ -620,7 +666,7 @@ foreach ($periodeOptions as $periodOption) {
             <?php else: ?>
                 <label class="hero-select-field">
                     <span class="hero-filter-label">Periode A</span>
-                    <select name="periode_a" aria-label="Pilih bulan periode A" onchange="window.location.href = this.value" <?= empty($periodeOptions) ? 'disabled' : '' ?>>
+                    <select name="periode_a" aria-label="Pilih bulan periode A" onchange="navigateBoardFilter(this.value)" <?= empty($periodeOptions) ? 'disabled' : '' ?>>
                         <?php foreach ($periodeOptions as $periodOption): ?>
                             <option value="<?= htmlspecialchars($periodeAUrls[$periodOption], ENT_QUOTES, 'UTF-8') ?>" <?= $periodeA === $periodOption ? 'selected' : '' ?>><?= htmlspecialchars(format_label_periode_kode($periodOption) ?: $periodOption) ?></option>
                         <?php endforeach; ?>
@@ -632,7 +678,7 @@ foreach ($periodeOptions as $periodOption) {
 
                 <label class="hero-select-field">
                     <span class="hero-filter-label">Periode B</span>
-                    <select name="periode_b" aria-label="Pilih bulan periode B" onchange="window.location.href = this.value" <?= empty($periodeOptions) ? 'disabled' : '' ?>>
+                    <select name="periode_b" aria-label="Pilih bulan periode B" onchange="navigateBoardFilter(this.value)" <?= empty($periodeOptions) ? 'disabled' : '' ?>>
                         <?php foreach ($periodeOptions as $periodOption): ?>
                             <option value="<?= htmlspecialchars($periodeBUrls[$periodOption], ENT_QUOTES, 'UTF-8') ?>" <?= $periodeB === $periodOption ? 'selected' : '' ?>><?= htmlspecialchars(format_label_periode_kode($periodOption) ?: $periodOption) ?></option>
                         <?php endforeach; ?>
@@ -645,7 +691,7 @@ foreach ($periodeOptions as $periodOption) {
 
             <label class="hero-select-field">
                 <span class="hero-filter-label">Tampilkan</span>
-                <select name="top_n" aria-label="Jumlah komoditas" onchange="window.location.href = this.value">
+                <select name="top_n" aria-label="Jumlah komoditas" onchange="navigateBoardFilter(this.value)">
                     <option value="<?= htmlspecialchars($topFilterUrls[1], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 1 ? 'selected' : '' ?>>Top 1</option>
                     <option value="<?= htmlspecialchars($topFilterUrls[3], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 3 ? 'selected' : '' ?>>Top 3</option>
                     <option value="<?= htmlspecialchars($topFilterUrls[5], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 5 ? 'selected' : '' ?>>Top 5</option>
@@ -657,7 +703,7 @@ foreach ($periodeOptions as $periodOption) {
             <div class="board-sort-mode">
                 <label class="hero-select-field">
                     <span class="hero-filter-label">Urutkan</span>
-                    <select name="urutkan" aria-label="Urutkan komoditas" onchange="window.location.href = this.value">
+                    <select name="urutkan" aria-label="Urutkan komoditas" onchange="navigateBoardFilter(this.value)">
                         <option value="<?= htmlspecialchars($sortFilterUrls['nilai_ekspor'], ENT_QUOTES, 'UTF-8') ?>" <?= $urutan === 'nilai_ekspor' ? 'selected' : '' ?>>Nilai Barang</option>
                         <option value="<?= htmlspecialchars($sortFilterUrls['frekuensi'], ENT_QUOTES, 'UTF-8') ?>" <?= $urutan === 'frekuensi' ? 'selected' : '' ?>>Frekuensi</option>
                     </select>
@@ -740,10 +786,24 @@ foreach ($periodeOptions as $periodOption) {
 
     <?php if (empty($data)): ?>
         <div class="board-empty-state">
-            <h3>Data Belum Dipublikasikan</h3>
-            <p><?= $periodeB === '' ? 'Belum tersedia data bulanan yang dipublikasikan.' : 'Belum ada data yang dipublikasikan untuk ' . htmlspecialchars($comparisonRangeLabel) . '.' ?></p>
+            <?php if (!$comparisonPage && $rentangPeriodeAkhir !== '' && $endPeriodIsNihil): ?>
+                <h3>Periode Ditandai Nihil</h3>
+                <p>Periode <?= htmlspecialchars($endPeriodLabel) ?> ditandai Nihil; tidak ada data komoditas untuk ditampilkan.</p>
+            <?php elseif (!$comparisonPage && $rentangPeriodeAkhir !== ''): ?>
+                <h3>Data Belum Dipublikasikan</h3>
+                <p>Data pada bulan <?= htmlspecialchars($endPeriodLabel) ?> Belum di Upload.</p>
+            <?php else: ?>
+                <h3>Data Belum Dipublikasikan</h3>
+                <p><?= $periodeB === '' ? 'Belum tersedia data bulanan yang dipublikasikan.' : 'Belum ada data yang dipublikasikan untuk ' . htmlspecialchars($comparisonRangeLabel) . '.' ?></p>
+            <?php endif; ?>
         </div>
     <?php elseif (!$comparisonPage): ?>
+
+        <?php if ($endPeriodIsNihil): ?>
+            <div class="board-empty-state" role="status" style="padding: 12px 16px; margin-bottom: 16px;">
+                Periode <?= htmlspecialchars($endPeriodLabel) ?> ditandai Nihil. Ringkasan hanya memuat data yang tersedia pada rentang terpilih.
+            </div>
+        <?php endif; ?>
 
         <?php if ($compareMode): ?>
             <div class="board-detail-period">
