@@ -68,6 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .login-field .field-input { padding: 11px 14px; font-size: 14px; }
         .password-field-wrap { position: relative; }
         .password-field-wrap input { padding-right: 44px; }
+        .password-field-wrap input::-ms-reveal,
+        .password-field-wrap input::-ms-clear { display: none; }
         .password-toggle-btn { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); background: none; border: none; padding: 8px; display: flex; align-items: center; justify-content: center; color: var(--ink-muted); cursor: pointer; }
         .password-toggle-btn:hover { color: var(--ink); }
         .login-back-link { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 20px; font-size: 12px; color: var(--ink-muted); text-decoration: none; }
