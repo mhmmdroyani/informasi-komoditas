@@ -799,12 +799,6 @@ foreach ($periodeOptions as $periodOption) {
         </div>
     <?php elseif (!$comparisonPage): ?>
 
-        <?php if ($endPeriodIsNihil): ?>
-            <div class="board-empty-state" role="status" style="padding: 12px 16px; margin-bottom: 16px;">
-                Periode <?= htmlspecialchars($endPeriodLabel) ?> ditandai Nihil. Ringkasan hanya memuat data yang tersedia pada rentang terpilih.
-            </div>
-        <?php endif; ?>
-
         <?php if ($compareMode): ?>
             <div class="board-detail-period">
                 <h2>Rincian Komoditas — <?= htmlspecialchars($comparisonLabelB) ?></h2>
