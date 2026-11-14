@@ -731,6 +731,7 @@ foreach ($yearOptions as $yearOption) {
     <?php if ($commodityChartPage): ?>
         <section class="commodity-chart-page" aria-labelledby="commodityChartTitle">
             <section class="board-hero commodity-chart-hero">
+                <img class="board-print-sigma-logo" src="<?= htmlspecialchars($assetPath . 'sigma-logo.png', ENT_QUOTES, 'UTF-8') ?>" alt="SIGMA — Sistem Infografis Komoditas Karantina">
                 <h1 class="board-hero-title" id="commodityChartTitle">
                     Grafik <?= $selectedCommodityChart
                         ? htmlspecialchars($selectedCommodityChart['name'], ENT_QUOTES, 'UTF-8')
@@ -959,6 +960,7 @@ foreach ($yearOptions as $yearOption) {
     <?php else: ?>
     <!-- Hero -->
     <section class="board-hero">
+        <img class="board-print-sigma-logo" src="<?= htmlspecialchars($assetPath . 'sigma-logo.png', ENT_QUOTES, 'UTF-8') ?>" alt="SIGMA — Sistem Infografis Komoditas Karantina">
         <h1 class="board-hero-title"><?= $comparisonPage ? 'Mode Grafik' : 'Top ' . ($topN > 0 ? $topN : 'Semua') . ' Komoditas' ?> <?= $labelKategori ?> — <?= $labelKegiatan ?></h1>
 
         <div class="board-periode-wrap">

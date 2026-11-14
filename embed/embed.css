@@ -161,6 +161,10 @@ body {
   position: relative;
 }
 
+.board-print-sigma-logo {
+  display: none;
+}
+
 .board-hero-title {
   font-size: 29px;
   font-weight: 800;
@@ -1464,12 +1468,23 @@ body {
   .board-hero {
     display: block !important;
     margin: 0 0 3mm;
-    padding: 3mm 5mm;
+    padding: 3mm 42mm;
     border-radius: 2mm;
     background: var(--brand-dark) !important;
     text-align: center;
     break-inside: avoid-page;
     page-break-inside: avoid;
+  }
+
+  .board-print-sigma-logo {
+    position: absolute;
+    top: 50%;
+    left: 4mm;
+    display: block;
+    width: 34mm;
+    max-height: 14mm;
+    object-fit: contain;
+    transform: translateY(-50%);
   }
 
   .board-hero-title {
@@ -1576,7 +1591,10 @@ body {
   }
 
   .top-commodity-panel-body {
-    display: block;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: flex-start;
   }
 
   .donut-layout {
@@ -1606,6 +1624,7 @@ body {
   }
 
   .top-bar-items {
+    flex: 0 0 auto;
     gap: 0.5mm;
     margin-top: 0;
   }
@@ -1640,11 +1659,17 @@ body {
   }
 
   .bar-chart-container-canva {
-    flex: 0 0 38mm;
+    flex: 1 1 38mm;
     width: 100%;
     height: 38mm;
     min-height: 38mm;
     margin: 1.5mm 0 0;
+  }
+
+  #barChartMaster {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
   }
 
   .dest-list {
