@@ -24,32 +24,62 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         </button>
 
         <div class="admin-nav-links">
-            <a href="index.php" class="admin-nav-link <?= $currentPage === 'index.php' ? 'active' : '' ?>">Dashboard</a>
+            <a href="index.php" class="admin-nav-link <?= $currentPage === 'index.php' ? 'active' : '' ?>">
+                <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg>
+                <span>Dashboard</span>
+            </a>
 
             <div class="admin-nav-dropdown <?= in_array($currentPage, ['upload_hewan.php', 'upload_ikan.php', 'upload_tumbuhan.php'], true) ? 'is-open' : '' ?>">
                 <button class="admin-nav-link admin-nav-dropdown-toggle <?= in_array($currentPage, ['upload_hewan.php', 'upload_ikan.php', 'upload_tumbuhan.php'], true) ? 'active' : '' ?>" type="button" aria-expanded="<?= in_array($currentPage, ['upload_hewan.php', 'upload_ikan.php', 'upload_tumbuhan.php'], true) ? 'true' : 'false' ?>">
-                    <span>Upload Excel</span>
+                    <span class="admin-nav-label">
+                        <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M5 14v5a2 2 0 002 2h10a2 2 0 002-2v-5"/></svg>
+                        <span>Upload Excel</span>
+                    </span>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
                 </button>
                 <div class="admin-nav-dropdown-panel">
-                    <a href="upload_hewan.php" class="admin-nav-dropdown-item <?= $currentPage === 'upload_hewan.php' ? 'active' : '' ?>"><span class="dot dot-hewan"></span> Hewan (KH)</a>
-                    <a href="upload_ikan.php" class="admin-nav-dropdown-item <?= $currentPage === 'upload_ikan.php' ? 'active' : '' ?>"><span class="dot dot-ikan"></span> Ikan (KI)</a>
-                    <a href="upload_tumbuhan.php" class="admin-nav-dropdown-item <?= $currentPage === 'upload_tumbuhan.php' ? 'active' : '' ?>"><span class="dot dot-tumbuhan"></span> Tumbuhan (KT)</a>
+                    <a href="upload_hewan.php" class="admin-nav-dropdown-item <?= $currentPage === 'upload_hewan.php' ? 'active' : '' ?>">
+                        <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM4 16a2 2 0 100-4 2 2 0 000 4zm16 0a2 2 0 100-4 2 2 0 000 4z"/><path d="M12 12c-3 0-5 2-5 4.5a2.5 2.5 0 002.5 2.5h5a2.5 2.5 0 002.5-2.5C17 14 15 12 12 12z"/></svg>
+                        <span>Hewan (KH)</span>
+                    </a>
+                    <a href="upload_ikan.php" class="admin-nav-dropdown-item <?= $currentPage === 'upload_ikan.php' ? 'active' : '' ?>">
+                        <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12s3.5-5 9-5 9 5 9 5-3.5 5-9 5-9-5-9-5z"/><circle cx="12" cy="12" r="2"/><path d="M3 12l-2-3v6l2-3z"/></svg>
+                        <span>Ikan (KI)</span>
+                    </a>
+                    <a href="upload_tumbuhan.php" class="admin-nav-dropdown-item <?= $currentPage === 'upload_tumbuhan.php' ? 'active' : '' ?>">
+                        <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4c-8 0-14 3-14 9a5 5 0 005 5c6 0 9-6 9-14z"/><path d="M3 21c3-6 7-9 13-13"/></svg>
+                        <span>Tumbuhan (KT)</span>
+                    </a>
                 </div>
             </div>
-            <a href="kelola_data.php" class="admin-nav-link <?= $currentPage === 'kelola_data.php' ? 'active' : '' ?>">Kelola & Publish Data</a>
+            <a href="kelola_data.php" class="admin-nav-link <?= $currentPage === 'kelola_data.php' ? 'active' : '' ?>">
+                <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h11a2 2 0 012 2v13a2 2 0 01-2 2H8a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M6 8H4a2 2 0 00-2 2v10a2 2 0 002 2h13M10 9h7m-7 4h7m-7 4h4"/></svg>
+                <span>Kelola & Publish Data</span>
+            </a>
             <?php if (is_admin_role()): ?>
-                <a href="users.php" class="admin-nav-link <?= $currentPage === 'users.php' ? 'active' : '' ?>">Kelola Pengguna</a>
-                <a href="activity_log.php" class="admin-nav-link <?= $currentPage === 'activity_log.php' ? 'active' : '' ?>">Log Aktivitas</a>
+                <a href="users.php" class="admin-nav-link <?= $currentPage === 'users.php' ? 'active' : '' ?>">
+                    <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 5a3.5 3.5 0 010 7m2 2a5 5 0 013.5 5"/></svg>
+                    <span>Kelola Pengguna</span>
+                </a>
+                <a href="activity_log.php" class="admin-nav-link <?= $currentPage === 'activity_log.php' ? 'active' : '' ?>">
+                    <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                    <span>Log Aktivitas</span>
+                </a>
             <?php endif; ?>
-            <a href="../index.php" target="_blank" rel="noopener noreferrer" class="admin-nav-link accent">Lihat Board Publik</a>
+            <a href="../index.php" target="_blank" rel="noopener noreferrer" class="admin-nav-link accent">
+                <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h7v7m0-7L10 14"/><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/></svg>
+                <span>Lihat Board Publik</span>
+            </a>
         </div>
 
         <div class="admin-nav-user">
             <span>Masuk sebagai <strong><?= htmlspecialchars($admin['nama']) ?></strong></span>
             <form method="POST" action="logout.php" data-confirm="Yakin ingin logout?" style="display: inline;">
                 <?= csrf_field() ?>
-                <button type="submit" class="admin-logout">Logout</button>
+                <button type="submit" class="admin-logout">
+                    <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3"/><path d="M12 3h6a2 2 0 012 2v14a2 2 0 01-2 2h-6"/></svg>
+                    <span>Logout</span>
+                </button>
             </form>
         </div>
     </div>

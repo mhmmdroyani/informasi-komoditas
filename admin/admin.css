@@ -150,7 +150,8 @@ a {
 .admin-nav-link {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 11px;
   width: 100%;
   padding: 11px 12px;
   border-radius: var(--radius-sm);
@@ -164,6 +165,27 @@ a {
   transition: background 0.15s ease, color 0.15s ease;
   background-color: transparent;
   border: 0;
+}
+
+.admin-nav-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.admin-nav-label {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+}
+
+.admin-nav-dropdown-toggle {
+  justify-content: space-between;
+}
+
+.admin-nav-dropdown-toggle > svg:last-child {
+  flex: 0 0 15px;
 }
 
 .admin-nav-link:hover {
@@ -204,7 +226,7 @@ a {
 .admin-nav-dropdown-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 9px 10px;
   border-radius: var(--radius-sm);
   font-size: 12px;
@@ -238,6 +260,9 @@ a {
 }
 
 .admin-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font: inherit;
   font-size: 12px;
   font-weight: 600;
