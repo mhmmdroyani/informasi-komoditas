@@ -739,7 +739,7 @@ foreach ($yearOptions as $yearOption) {
                     — <?= htmlspecialchars($labelKegiatan, ENT_QUOTES, 'UTF-8') ?>
                 </h1>
                 <div class="board-periode-wrap">
-                    <span class="board-periode-badge">Perbandingan <?= htmlspecialchars($commodityComparisonYears[0] . ' – ' . $commodityComparisonYears[1], ENT_QUOTES, 'UTF-8') ?></span>
+                    <span class="board-periode-badge"><?= htmlspecialchars($commodityComparisonYears[0] . ' – ' . $commodityComparisonYears[1], ENT_QUOTES, 'UTF-8') ?></span>
                 </div>
                 <form class="board-hero-controls commodity-year-controls" method="get" action="<?= htmlspecialchars($assetPath . '../index.php', ENT_QUOTES, 'UTF-8') ?>">
                     <input type="hidden" name="jenis" value="<?= htmlspecialchars($jenis, ENT_QUOTES, 'UTF-8') ?>">
@@ -1030,18 +1030,19 @@ foreach ($yearOptions as $yearOption) {
                 </div>
             <?php endif; ?>
 
-            <label class="hero-select-field">
-                <span class="hero-filter-label">Tampilkan</span>
-                <select name="top_n" aria-label="Jumlah komoditas" onchange="navigateBoardFilter(this.value)">
-                    <option value="<?= htmlspecialchars($topFilterUrls[1], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 1 ? 'selected' : '' ?>>Top 1</option>
-                    <option value="<?= htmlspecialchars($topFilterUrls[3], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 3 ? 'selected' : '' ?>>Top 3</option>
-                    <option value="<?= htmlspecialchars($topFilterUrls[5], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 5 ? 'selected' : '' ?>>Top 5</option>
-                    <option value="<?= htmlspecialchars($topFilterUrls[10], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 10 ? 'selected' : '' ?>>Top 10</option>
-                    <option value="<?= htmlspecialchars($topFilterUrls[0], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 0 ? 'selected' : '' ?>>Semua Data</option>
-                </select>
-            </label>
+            <?php if (!$comparisonPage): ?>
+                <label class="hero-select-field">
+                    <span class="hero-filter-label">Tampilkan</span>
+                    <select name="top_n" aria-label="Jumlah komoditas" onchange="navigateBoardFilter(this.value)">
+                        <option value="<?= htmlspecialchars($topFilterUrls[1], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 1 ? 'selected' : '' ?>>Top 1</option>
+                        <option value="<?= htmlspecialchars($topFilterUrls[3], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 3 ? 'selected' : '' ?>>Top 3</option>
+                        <option value="<?= htmlspecialchars($topFilterUrls[5], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 5 ? 'selected' : '' ?>>Top 5</option>
+                        <option value="<?= htmlspecialchars($topFilterUrls[10], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 10 ? 'selected' : '' ?>>Top 10</option>
+                        <option value="<?= htmlspecialchars($topFilterUrls[0], ENT_QUOTES, 'UTF-8') ?>" <?= $topN === 0 ? 'selected' : '' ?>>Semua Data</option>
+                    </select>
+                </label>
 
-            <div class="board-sort-mode">
+                <div class="board-sort-mode">
                 <label class="hero-select-field">
                     <span class="hero-filter-label">Urutkan</span>
                     <select name="urutkan" aria-label="Urutkan komoditas" onchange="navigateBoardFilter(this.value)">
@@ -1049,16 +1050,19 @@ foreach ($yearOptions as $yearOption) {
                         <option value="<?= htmlspecialchars($sortFilterUrls['frekuensi'], ENT_QUOTES, 'UTF-8') ?>" <?= $urutan === 'frekuensi' ? 'selected' : '' ?>>Frekuensi</option>
                     </select>
                 </label>
-
                 <a
-                    href="<?= htmlspecialchars($comparisonPage
-                        ? $assetPath . '../index.php?' . http_build_query($boardFilterParams)
-                        : $comparisonPageUrl, ENT_QUOTES, 'UTF-8') ?>"
+                    href="<?= htmlspecialchars($comparisonPageUrl, ENT_QUOTES, 'UTF-8') ?>"
                     class="board-compare-btn"
-                    <?= $comparisonPage ? 'aria-label="Kembali ke ringkasan Board Publik"' : 'aria-label="Buka Mode Grafik"' ?>
-                ><?= $comparisonPage ? 'Kembali ke Ringkasan' : 'Mode Grafik' ?></a>
-            </div>
-
+                    aria-label="Buka Mode Grafik"
+                >Mode Grafik</a>
+                </div>
+            <?php else: ?>
+                <a
+                    href="<?= htmlspecialchars($assetPath . '../index.php?' . http_build_query($boardFilterParams), ENT_QUOTES, 'UTF-8') ?>"
+                    class="board-compare-btn"
+                    aria-label="Kembali ke ringkasan Board Publik"
+                >Kembali ke Ringkasan</a>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
     </section>

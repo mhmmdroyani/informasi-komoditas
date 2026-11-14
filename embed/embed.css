@@ -1787,6 +1787,109 @@ body {
     margin-top: 0.5mm;
     font-size: 7pt;
   }
+
+  .commodity-chart-page {
+    display: block;
+    padding: 0;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .commodity-chart-hero {
+    margin: 0 0 2mm;
+    padding: 2.5mm 42mm;
+  }
+
+  .commodity-chart-hero .board-hero-title {
+    margin: 0 0 1mm;
+    font-size: 13pt;
+  }
+
+  .commodity-chart-hero .board-periode-wrap {
+    margin: 0;
+  }
+
+  .commodity-chart-hero .board-periode-badge {
+    padding: 0.8mm 2.5mm;
+    font-size: 7pt;
+  }
+
+  .commodity-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2mm;
+    margin: 0 0 2mm;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .commodity-summary-card {
+    min-height: 29mm;
+    padding: 2mm;
+    gap: 2mm;
+  }
+
+  .commodity-summary-card .kpi-icon-circle svg {
+    width: 10mm;
+    height: 10mm;
+  }
+
+  .commodity-summary-card .kpi-title-canva {
+    margin-bottom: 0.5mm;
+    font-size: 7pt;
+  }
+
+  .commodity-summary-year-label {
+    font-size: 7pt;
+  }
+
+  .commodity-summary-year strong {
+    font-size: 12pt;
+  }
+
+  .commodity-summary-unit {
+    font-size: 7pt;
+  }
+
+  .commodity-chart-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 2mm;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .commodity-chart-card {
+    min-width: 0;
+    padding: 2mm;
+    border-radius: 2mm;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .commodity-chart-card-header {
+    min-height: 0;
+    align-items: center;
+    margin-bottom: 1mm;
+  }
+
+  .commodity-chart-card-header h2,
+  .commodity-chart-card-header h3 {
+    font-size: 7pt;
+  }
+
+  .commodity-chart-download {
+    display: none !important;
+  }
+
+  .commodity-chart-canvas {
+    height: 96mm;
+  }
+
+  .commodity-chart-canvas canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
 }
 
 /* =========================================
