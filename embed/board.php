@@ -115,11 +115,32 @@ $nihilEndPeriodStmt->execute([$jenis, $kategori, $rentangPeriodeAkhir]);
 $endPeriodIsNihil = (bool)$nihilEndPeriodStmt->fetchColumn();
 $yearOptions = published_comparison_years($publishedPeriods);
 $currentYear = (int)(new DateTimeImmutable('now', new DateTimeZone('Asia/Makassar')))->format('Y');
+$commodityComparisonYearOptions = array_values(array_unique(array_merge($yearOptions, [(string)$currentYear])));
+sort($commodityComparisonYearOptions, SORT_STRING);
 $latestCommodityYear = max(
     $currentYear,
     (int)($yearOptions[count($yearOptions) - 1] ?? $currentYear)
 );
-$commodityComparisonYears = [(string)($latestCommodityYear - 1), (string)$latestCommodityYear];
+$defaultCommodityComparisonYears = [(string)($latestCommodityYear - 1), (string)$latestCommodityYear];
+$commodityComparisonYearOptions = array_values(array_unique(array_merge(
+    $commodityComparisonYearOptions,
+    $defaultCommodityComparisonYears
+)));
+sort($commodityComparisonYearOptions, SORT_STRING);
+$requestedCommodityYearA = is_string($_GET['grafik_tahun_a'] ?? null)
+    ? trim($_GET['grafik_tahun_a'])
+    : '';
+$requestedCommodityYearB = is_string($_GET['grafik_tahun_b'] ?? null)
+    ? trim($_GET['grafik_tahun_b'])
+    : '';
+$commodityComparisonYears = $defaultCommodityComparisonYears;
+if (
+    in_array($requestedCommodityYearA, $commodityComparisonYearOptions, true)
+    && in_array($requestedCommodityYearB, $commodityComparisonYearOptions, true)
+) {
+    $commodityComparisonYears = [$requestedCommodityYearA, $requestedCommodityYearB];
+    sort($commodityComparisonYears, SORT_STRING);
+}
 $commodityComparisonStart = $commodityComparisonYears[0];
 $commodityComparisonEnd = $commodityComparisonYears[1];
 $comparisonYearA = trim($_GET['tahun_a'] ?? substr($periodeA, 0, 4));
@@ -714,6 +735,32 @@ foreach ($yearOptions as $yearOption) {
                 <div class="board-periode-wrap">
                     <span class="board-periode-badge">Perbandingan <?= htmlspecialchars($commodityComparisonYears[0] . ' – ' . $commodityComparisonYears[1], ENT_QUOTES, 'UTF-8') ?></span>
                 </div>
+                <form class="board-hero-controls commodity-year-controls" method="get" action="<?= htmlspecialchars($assetPath . '../index.php', ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="jenis" value="<?= htmlspecialchars($jenis, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="kategori" value="<?= htmlspecialchars($kategori, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="grafik_komoditas" value="<?= htmlspecialchars($requestedCommodityChartKey, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="top_n" value="<?= $topN ?>">
+                    <input type="hidden" name="urutkan" value="<?= htmlspecialchars($urutan, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="periode_a" value="<?= htmlspecialchars($periodeA, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="periode_b" value="<?= htmlspecialchars($periodeB, ENT_QUOTES, 'UTF-8') ?>">
+                    <label class="hero-select-field">
+                        <span class="hero-filter-label">Tahun Awal</span>
+                        <select name="grafik_tahun_a" aria-label="Pilih tahun awal grafik komoditas">
+                            <?php foreach ($commodityComparisonYearOptions as $yearOption): ?>
+                                <option value="<?= htmlspecialchars($yearOption, ENT_QUOTES, 'UTF-8') ?>" <?= $commodityComparisonYears[0] === $yearOption ? 'selected' : '' ?>><?= htmlspecialchars($yearOption, ENT_QUOTES, 'UTF-8') ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <label class="hero-select-field">
+                        <span class="hero-filter-label">Tahun Akhir</span>
+                        <select name="grafik_tahun_b" aria-label="Pilih tahun akhir grafik komoditas">
+                            <?php foreach ($commodityComparisonYearOptions as $yearOption): ?>
+                                <option value="<?= htmlspecialchars($yearOption, ENT_QUOTES, 'UTF-8') ?>" <?= $commodityComparisonYears[1] === $yearOption ? 'selected' : '' ?>><?= htmlspecialchars($yearOption, ENT_QUOTES, 'UTF-8') ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <button class="board-compare-btn" type="submit">Terapkan</button>
+                </form>
                 <button class="board-download-btn" type="button" onclick="openPrintBoard()">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg>
                     Cetak
