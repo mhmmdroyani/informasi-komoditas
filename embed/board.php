@@ -473,12 +473,6 @@ foreach ($destCountsBySelection as $selectionKey => $locations) {
         array_values($locations)
     );
 }
-if ($isDomestik) {
-    $subWilayah = max(1, count($daftarDest)) . ' Provinsi/Area';
-} else {
-    $subWilayah = hitung_benua($daftarDest) . ' Benua';
-}
-
 arsort($destCounts);
 
 // Labels
@@ -487,7 +481,6 @@ $labelKategori = ucfirst($kategori);
 $labelArah = get_label_arah($jenis);
 $labelArahUpper = $labelArah;
 $labelSatuanWilayah = get_label_wilayah($jenis);
-$labelDokumen = get_label_sertifikat($jenis, $kategori);
 $summaryMetricLabel = $urutan === 'frekuensi' ? 'Frekuensi' : 'Nilai ' . $labelKegiatan;
 
 // Top Commodity Name
@@ -1159,7 +1152,6 @@ foreach ($yearOptions as $yearOption) {
                     <div class="kpi-title-canva">Frekuensi Sertifikasi</div>
                     <div class="kpi-number-canva lime"><?= format_angka($totalFrekuensi) ?></div>
                     <div class="kpi-unit-canva lime">Kali</div>
-                    <div class="kpi-subtext-canva"><?= htmlspecialchars($labelDokumen) ?></div>
                 </div>
             </div>
 
@@ -1175,7 +1167,6 @@ foreach ($yearOptions as $yearOption) {
                     <div class="kpi-title-canva"><?= $labelArahUpper ?></div>
                     <div class="kpi-number-canva orange"><?= $jumlahWilayah ?></div>
                     <div class="kpi-unit-canva orange"><?= $labelSatuanWilayah ?></div>
-                    <div class="kpi-subtext-canva"><?= $subWilayah ?></div>
                 </div>
             </div>
         </div>
