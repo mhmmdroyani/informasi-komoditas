@@ -942,15 +942,17 @@ foreach ($yearOptions as $yearOption) {
                     </select>
                 </label>
             <?php else: ?>
-                <label class="hero-select-field">
-                    <span class="hero-filter-label">Periode A</span>
-                    <input type="month" id="boardPeriodeA" value="<?= htmlspecialchars($periodeA) ?>" min="<?= htmlspecialchars($periodeOptions[0] ?? '') ?>" max="<?= htmlspecialchars($periodeOptions[count($periodeOptions) - 1] ?? '') ?>" aria-label="Pilih bulan dan tahun periode A" onchange="navigateBoardPeriod('a')">
-                </label>
+                <div class="board-period-fields">
+                    <label class="hero-select-field">
+                        <span class="hero-filter-label">Periode A</span>
+                        <input type="month" id="boardPeriodeA" value="<?= htmlspecialchars($periodeA) ?>" min="<?= htmlspecialchars($periodeOptions[0] ?? '') ?>" max="<?= htmlspecialchars($periodeOptions[count($periodeOptions) - 1] ?? '') ?>" aria-label="Pilih bulan dan tahun periode A" onchange="navigateBoardPeriod('a')">
+                    </label>
 
-                <label class="hero-select-field">
-                    <span class="hero-filter-label">Periode B</span>
-                    <input type="month" id="boardPeriodeB" value="<?= htmlspecialchars($periodeB) ?>" min="<?= htmlspecialchars($periodeOptions[0] ?? '') ?>" max="<?= htmlspecialchars($periodeOptions[count($periodeOptions) - 1] ?? '') ?>" aria-label="Pilih bulan dan tahun periode B" onchange="navigateBoardPeriod('b')">
-                </label>
+                    <label class="hero-select-field">
+                        <span class="hero-filter-label">Periode B</span>
+                        <input type="month" id="boardPeriodeB" value="<?= htmlspecialchars($periodeB) ?>" min="<?= htmlspecialchars($periodeOptions[0] ?? '') ?>" max="<?= htmlspecialchars($periodeOptions[count($periodeOptions) - 1] ?? '') ?>" aria-label="Pilih bulan dan tahun periode B" onchange="navigateBoardPeriod('b')">
+                    </label>
+                </div>
             <?php endif; ?>
 
             <label class="hero-select-field">
