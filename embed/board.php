@@ -748,18 +748,18 @@ foreach ($yearOptions as $yearOption) {
                 </header>
                 <section class="commodity-summary-grid" aria-label="Ringkasan tahunan komoditas">
                     <?php foreach ($commodityMetricCards as $metricCard): ?>
-                        <article class="commodity-summary-card commodity-summary-card--<?= htmlspecialchars($metricCard['class'], ENT_QUOTES, 'UTF-8') ?>">
-                            <span class="commodity-summary-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><?= $metricCard['icon'] ?></svg>
+                        <article class="kpi-card-canva commodity-summary-card">
+                            <span class="kpi-icon-circle <?= htmlspecialchars($metricCard['class'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true">
+                                <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><?= $metricCard['icon'] ?></svg>
                             </span>
-                            <div class="commodity-summary-content">
-                                <h2><?= htmlspecialchars($metricCard['title'], ENT_QUOTES, 'UTF-8') ?></h2>
+                            <div class="kpi-content-canva commodity-summary-content">
+                                <h2 class="kpi-title-canva"><?= htmlspecialchars($metricCard['title'], ENT_QUOTES, 'UTF-8') ?></h2>
                                 <div class="commodity-summary-years">
                                     <?php foreach ($commodityComparisonYears as $year): ?>
                                         <div class="commodity-summary-year">
                                             <span class="commodity-summary-year-label commodity-summary-year-label--<?= $year === $commodityComparisonYears[0] ? 'previous' : 'latest' ?>"><?= htmlspecialchars($year, ENT_QUOTES, 'UTF-8') ?></span>
-                                            <strong><?= htmlspecialchars($metricCard['values'][$year]['value'], ENT_QUOTES, 'UTF-8') ?></strong>
-                                            <span class="commodity-summary-unit"><?= htmlspecialchars($metricCard['values'][$year]['unit'], ENT_QUOTES, 'UTF-8') ?></span>
+                                            <strong class="kpi-number-canva"><?= htmlspecialchars($metricCard['values'][$year]['value'], ENT_QUOTES, 'UTF-8') ?></strong>
+                                            <span class="kpi-unit-canva commodity-summary-unit"><?= htmlspecialchars($metricCard['values'][$year]['unit'], ENT_QUOTES, 'UTF-8') ?></span>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
