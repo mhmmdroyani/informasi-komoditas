@@ -125,10 +125,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div>
                     <label class="field-label">Pilih File Excel (.xlsx / .xls) <span style="color: var(--danger);">*</span></label>
-                    <input type="file" id="fileExcel" name="file_excel" required accept=".xlsx, .xls, .csv" class="file-input">
+                    <label class="file-dropzone" id="fileDropzone">
+                        <input type="file" id="fileExcel" name="file_excel" required accept=".xlsx, .xls, .csv" class="file-dropzone-input" aria-label="Pilih file Excel atau CSV">
+                        <span class="file-dropzone-content" aria-hidden="true">
+                            <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M12 16V4m0 0L7 9m5-5 5 5M5 14v5a2 2 0 002 2h10a2 2 0 002-2v-5"/></svg>
+                            <strong>Tarik file Excel ke sini</strong>
+                            <span>atau klik untuk memilih file (.xlsx, .xls, .csv)</span>
+                            <small id="fileExcelName">Belum ada file dipilih</small>
+                        </span>
+                    </label>
+                    <p class="file-upload-feedback" id="fileExcelFeedback" role="status" aria-live="polite"></p>
                     <label class="nihil-option">
                         <input type="checkbox" name="nihil" value="1" id="markNihil">
-                        <span><strong>Nihil</strong><small>Tandai bulan ini sudah diperiksa dan tidak ada data.</small></span>
+                        <span><strong>Tandai sebagai Nihil</strong><small>Bulan ini sudah diperiksa dan tidak ada data.</small></span>
                     </label>
                 </div>
 
@@ -167,10 +176,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     (() => {
         const nihil = document.getElementById('markNihil');
         const file = document.getElementById('fileExcel');
+        const dropzone = document.getElementById('fileDropzone');
+        const fileName = document.getElementById('fileExcelName');
+        const feedback = document.getElementById('fileExcelFeedback');
+        const allowedExtensions = /\.(xlsx|xls|csv)$/i;
+
+        const showFile = selectedFile => {
+            feedback.textContent = '';
+            if (selectedFile && !allowedExtensions.test(selectedFile.name)) {
+                file.value = '';
+                fileName.textContent = 'Belum ada file dipilih';
+                feedback.textContent = 'Format file tidak didukung. Pilih file .xlsx, .xls, atau .csv.';
+                return false;
+            }
+            fileName.textContent = selectedFile ? selectedFile.name : 'Belum ada file dipilih';
+            return true;
+        };
+
+        file.addEventListener('change', () => showFile(file.files[0]));
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, event => {
+                event.preventDefault();
+                if (!file.disabled) dropzone.classList.add('is-dragging');
+            });
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, event => {
+                event.preventDefault();
+                dropzone.classList.remove('is-dragging');
+            });
+        });
+        dropzone.addEventListener('drop', event => {
+            if (file.disabled) return;
+            const selectedFile = event.dataTransfer.files[0];
+            if (!selectedFile) return;
+            if (!showFile(selectedFile)) return;
+            const transfer = new DataTransfer();
+            transfer.items.add(selectedFile);
+            file.files = transfer.files;
+        });
+
         nihil.addEventListener('change', () => {
             file.disabled = nihil.checked;
             file.required = !nihil.checked;
-            if (nihil.checked) file.value = '';
+            dropzone.classList.toggle('is-disabled', nihil.checked);
+            dropzone.setAttribute('aria-disabled', String(nihil.checked));
+            if (nihil.checked) {
+                file.value = '';
+                showFile(null);
+            }
         });
     })();
     </script>
