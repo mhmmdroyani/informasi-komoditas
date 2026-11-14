@@ -639,29 +639,10 @@ body {
 
 .commodity-chart-hero {
   margin-top: 0;
-  padding-top: 24px;
-}
-
-.commodity-chart-hero .commodity-chart-back {
-  position: absolute;
-  top: 18px;
-  left: 24px;
-  margin: 0;
-  padding: 7px 11px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-  font-size: 12px;
-}
-
-.commodity-chart-hero .commodity-chart-back:hover {
-  background: rgba(255, 255, 255, 0.22);
-  text-decoration: none;
 }
 
 .commodity-chart-hero .board-hero-title {
-  margin: 18px 110px 10px;
+  margin: 0 0 10px;
 }
 
 .commodity-chart-hero .board-periode-wrap {
@@ -683,19 +664,6 @@ body {
   color: var(--brand-dark);
   font-weight: 700;
   text-decoration: none;
-}
-
-.commodity-chart-back {
-  display: inline-flex;
-  margin-bottom: 20px;
-  color: var(--brand);
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.commodity-chart-back:hover {
-  text-decoration: underline;
 }
 
 .commodity-chart-page-header {
@@ -1076,15 +1044,6 @@ body {
     flex-direction: column;
   }
 
-  .commodity-chart-hero .commodity-chart-back {
-    position: static;
-    margin-bottom: 10px;
-  }
-
-  .commodity-chart-hero .board-hero-title {
-    margin: 0 0 10px;
-  }
-
 }
 
 @media (max-width: 520px) {
@@ -1394,12 +1353,14 @@ body {
 .commodity-year-controls {
   width: min(100%, 520px);
   max-width: 520px;
+  width: min(100%, 700px);
+  max-width: 700px;
   padding: 10px 12px;
   gap: 10px;
 }
 
 .commodity-year-controls .hero-select-field {
-  flex: 1 1 0;
+  flex: 1 1 150px;
   min-width: 0;
 }
 
@@ -1408,10 +1369,19 @@ body {
   padding: 6px 30px 6px 10px;
 }
 
+.commodity-year-controls .board-compare-btn {
+  min-height: 36px;
+  padding: 8px 12px;
+}
+
 @media (max-width: 900px) {
   .commodity-year-controls {
     flex-direction: row;
     align-items: flex-end;
+  }
+
+  .commodity-year-controls .board-compare-btn {
+    width: auto;
   }
 }
 
