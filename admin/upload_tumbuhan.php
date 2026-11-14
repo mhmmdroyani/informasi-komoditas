@@ -146,28 +146,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </label>
                 </div>
 
-                <!-- Opsi Mode & Publish -->
-                <div style="padding-top: 12px; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px;">
-                    <div>
-                        <label class="field-label">Mode Import Data</label>
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
-                                <input type="radio" name="mode" value="append" checked>
-                                <span>Tambahkan ke data yang ada (Append)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
-                                <input type="radio" name="mode" value="replace">
-                                <span>Gantikan data lama pada jenis & periode ini (Replace)</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="field-label">Status Setelah Upload</label>
-                        <p class="field-hint" style="margin-top: 0;">Semua data masuk sebagai draft. Periksa dan publikasikan dari halaman Kelola Data.</p>
-                    </div>
-                </div>
-
                 <div style="padding-top: 4px; display: flex; align-items: center; justify-content: space-between;">
                     <a href="kelola_data.php?jenis=<?= $currentJenis ?>&kategori=tumbuhan" style="font-size: 13px; color: var(--ink-muted); text-decoration: none;">Batal / Ke Kelola Data</a>
                     <button type="submit" class="btn btn-primary">
