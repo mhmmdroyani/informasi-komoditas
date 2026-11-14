@@ -246,7 +246,7 @@ $allMonthlyData = $stmtData->fetchAll();
 $commodityComparisonData = [];
 if (!$comparisonPage) {
     $itemComparisonStmt = $pdo->prepare(
-        "SELECT periode, nama_komoditas, volume, satuan, frekuensi, nilai_ekspor
+        "SELECT periode, nama_komoditas, volume, satuan, frekuensi, nilai_ekspor, {$fieldTujuan} AS lokasi_tujuan
          FROM ekspor_komoditas
          WHERE jenis_kegiatan = ? AND kategori = ? AND is_published = 1
              AND periode >= ? AND periode <= ?
@@ -282,12 +282,26 @@ if (!$comparisonPage) {
                 'frequency' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0)),
                 'volume' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0.0)),
                 'value' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0.0)),
+                'destinations' => array_fill_keys($commodityComparisonYears, []),
             ];
         }
         $commodityComparisonData[$selectionKey]['frequency'][$year][$month] += (int)($comparisonRow['frekuensi'] ?? 0);
         $commodityComparisonData[$selectionKey]['volume'][$year][$month] += $normalizedVolume['volume'];
         $commodityComparisonData[$selectionKey]['value'][$year][$month] += (float)($comparisonRow['nilai_ekspor'] ?? 0);
+        $destinations = preg_split('/\s*(?:,|;|\/|\|)\s*/', (string)($comparisonRow['lokasi_tujuan'] ?? ''));
+        foreach ($destinations as $destination) {
+            $destination = trim($destination);
+            if ($destination !== '') {
+                $commodityComparisonData[$selectionKey]['destinations'][$year][strtolower($destination)] = true;
+            }
+        }
     }
+    foreach ($commodityComparisonData as &$comparisonItem) {
+        foreach ($commodityComparisonYears as $year) {
+            $comparisonItem['destinations'][$year] = count($comparisonItem['destinations'][$year]);
+        }
+    }
+    unset($comparisonItem);
 }
 $allData = $allMonthlyData;
 if (!$comparisonPage) {
@@ -506,6 +520,7 @@ foreach ($data as $idx => $row) {
             'frequency' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0)),
             'volume' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0.0)),
             'value' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0.0)),
+            'destinations' => array_fill_keys($commodityComparisonYears, 0),
         ];
     }
 }
@@ -695,6 +710,34 @@ foreach ($yearOptions as $yearOption) {
         <section class="commodity-chart-page" aria-labelledby="commodityChartTitle">
             <a class="commodity-chart-back" href="<?= htmlspecialchars($commodityChartPageUrl, ENT_QUOTES, 'UTF-8') ?>">&larr; Kembali ke Board Publik</a>
             <?php if ($selectedCommodityChart): ?>
+                <?php
+                $commodityMetricCards = [
+                    ['title' => 'Nilai Komoditas', 'class' => 'value', 'icon' => '<path d="M12 2v20m5-16H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>', 'values' => []],
+                    ['title' => 'Volume', 'class' => 'volume', 'icon' => '<path d="m12 3 8 4v10l-8 4-8-4V7l8-4Z"/><path d="m4 7 8 4 8-4m-8 4v10"/>', 'values' => []],
+                    ['title' => 'Frekuensi Sertifikasi', 'class' => 'frequency', 'icon' => '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5h6M9 11h6m-6 4h6"/>', 'values' => []],
+                    ['title' => $labelArahUpper, 'class' => 'destination', 'icon' => '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18m0-18a15 15 0 0 0 0 18"/>', 'values' => []],
+                ];
+                foreach ($commodityComparisonYears as $year) {
+                    $valueKpi = format_kpi_nilai(array_sum($selectedCommodityChart['value'][$year]));
+                    $volumeTotal = array_sum($selectedCommodityChart['volume'][$year]);
+                    $commodityMetricCards[0]['values'][$year] = [
+                        'value' => $valueKpi['angka'],
+                        'unit' => $valueKpi['satuan'],
+                    ];
+                    $commodityMetricCards[1]['values'][$year] = [
+                        'value' => format_angka($volumeTotal, floor($volumeTotal) === $volumeTotal ? 0 : 2),
+                        'unit' => $selectedCommodityChart['unit'],
+                    ];
+                    $commodityMetricCards[2]['values'][$year] = [
+                        'value' => format_angka(array_sum($selectedCommodityChart['frequency'][$year])),
+                        'unit' => 'kali',
+                    ];
+                    $commodityMetricCards[3]['values'][$year] = [
+                        'value' => format_angka($selectedCommodityChart['destinations'][$year] ?? 0),
+                        'unit' => $isDomestik ? 'daerah' : 'negara',
+                    ];
+                }
+                ?>
                 <header class="commodity-chart-page-header">
                     <div>
                         <span class="commodity-chart-page-eyebrow">Grafik Komoditas</span>
@@ -703,6 +746,27 @@ foreach ($yearOptions as $yearOption) {
                     </div>
                     <span class="commodity-chart-page-context"><?= htmlspecialchars($labelKategori . ' • ' . $labelKegiatan, ENT_QUOTES, 'UTF-8') ?></span>
                 </header>
+                <section class="commodity-summary-grid" aria-label="Ringkasan tahunan komoditas">
+                    <?php foreach ($commodityMetricCards as $metricCard): ?>
+                        <article class="commodity-summary-card commodity-summary-card--<?= htmlspecialchars($metricCard['class'], ENT_QUOTES, 'UTF-8') ?>">
+                            <span class="commodity-summary-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><?= $metricCard['icon'] ?></svg>
+                            </span>
+                            <div class="commodity-summary-content">
+                                <h2><?= htmlspecialchars($metricCard['title'], ENT_QUOTES, 'UTF-8') ?></h2>
+                                <div class="commodity-summary-years">
+                                    <?php foreach ($commodityComparisonYears as $year): ?>
+                                        <div class="commodity-summary-year">
+                                            <span class="commodity-summary-year-label commodity-summary-year-label--<?= $year === $commodityComparisonYears[0] ? 'previous' : 'latest' ?>"><?= htmlspecialchars($year, ENT_QUOTES, 'UTF-8') ?></span>
+                                            <strong><?= htmlspecialchars($metricCard['values'][$year]['value'], ENT_QUOTES, 'UTF-8') ?></strong>
+                                            <span class="commodity-summary-unit"><?= htmlspecialchars($metricCard['values'][$year]['unit'], ENT_QUOTES, 'UTF-8') ?></span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                </section>
                 <div class="commodity-chart-grid">
                     <div class="commodity-chart-card">
                         <div class="commodity-chart-card-header">
