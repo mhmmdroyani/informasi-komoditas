@@ -6,7 +6,7 @@ Aplikasi PHP untuk mengelola data lalu lintas komoditas karantina Kalimantan Sel
 
 - Board publik untuk lalu lintas domestik masuk/keluar, ekspor, dan impor.
 - Ringkasan, grafik komoditas, filter periode bulanan, dan Mode Grafik tren bulanan antar tahun.
-- Pencetakan Board Publik siap A4 landscape, pencarian langsung komoditas, serta grafik frekuensi, volume, dan nilai komoditas per komoditas yang dapat diunduh sebagai PNG.
+- Pencetakan Board Publik siap A4 landscape, pencarian langsung komoditas, serta halaman grafik khusus per komoditas untuk membandingkan frekuensi, volume, dan nilai tahunan serta mengunduh grafik sebagai PNG.
 - Filter periode menggunakan pemilih bulan dan tahun pada Board Publik dan Kelola Data.
 - Panel admin untuk mengimpor data Excel kategori hewan, ikan, dan tumbuhan.
 - Penanda periode Nihil untuk bulan tanpa data dan log aktivitas admin.

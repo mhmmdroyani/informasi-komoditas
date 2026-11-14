@@ -7,6 +7,10 @@ require_once __DIR__ . '/../includes/annual_comparison.php';
 $assetPath = $assetPath ?? '';
 $showControls = $show_controls ?? (isset($_GET['nav']) && $_GET['nav'] == 1);
 $comparisonPage = $comparisonPage ?? false;
+$commodityChartPage = !$comparisonPage && array_key_exists('grafik_komoditas', $_GET);
+$requestedCommodityChartKey = is_string($_GET['grafik_komoditas'] ?? null)
+    ? trim($_GET['grafik_komoditas'])
+    : '';
 
 $kategori = $_GET['kategori'] ?? 'hewan';
 if (!in_array($kategori, ['hewan', 'ikan', 'tumbuhan'])) {
@@ -110,6 +114,14 @@ $nihilEndPeriodStmt = $pdo->prepare(
 $nihilEndPeriodStmt->execute([$jenis, $kategori, $rentangPeriodeAkhir]);
 $endPeriodIsNihil = (bool)$nihilEndPeriodStmt->fetchColumn();
 $yearOptions = published_comparison_years($publishedPeriods);
+$currentYear = (int)(new DateTimeImmutable('now', new DateTimeZone('Asia/Makassar')))->format('Y');
+$latestCommodityYear = max(
+    $currentYear,
+    (int)($yearOptions[count($yearOptions) - 1] ?? $currentYear)
+);
+$commodityComparisonYears = [(string)($latestCommodityYear - 1), (string)$latestCommodityYear];
+$commodityComparisonStart = $commodityComparisonYears[0];
+$commodityComparisonEnd = $commodityComparisonYears[1];
 $comparisonYearA = trim($_GET['tahun_a'] ?? substr($periodeA, 0, 4));
 $comparisonYearB = trim($_GET['tahun_b'] ?? substr($periodeB, 0, 4));
 if (!in_array($comparisonYearA, $yearOptions, true)) {
@@ -237,13 +249,20 @@ if (!$comparisonPage) {
         "SELECT periode, nama_komoditas, volume, satuan, frekuensi, nilai_ekspor
          FROM ekspor_komoditas
          WHERE jenis_kegiatan = ? AND kategori = ? AND is_published = 1
-             AND periode >= '2025-01' AND periode <= '2026-12'
+             AND periode >= ? AND periode <= ?
              AND periode REGEXP '^[0-9]{4}-(0[1-9]|1[0-2])$'
          ORDER BY periode"
     );
-    $itemComparisonStmt->execute([$jenis, $kategori]);
+    $itemComparisonStmt->execute([
+        $jenis,
+        $kategori,
+        $commodityComparisonStart . '-01',
+        $commodityComparisonEnd . '-12'
+    ]);
     foreach ($itemComparisonStmt->fetchAll(PDO::FETCH_ASSOC) as $comparisonRow) {
-        if (!preg_match('/^(2025|2026)-(0[1-9]|1[0-2])$/', (string)$comparisonRow['periode'], $matches)) {
+        $period = (string)$comparisonRow['periode'];
+        if (!preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $period, $matches)
+            || !in_array($matches[1], $commodityComparisonYears, true)) {
             continue;
         }
         $normalizedVolume = normalize_compatible_volume_unit(
@@ -260,9 +279,9 @@ if (!$comparisonPage) {
             $commodityComparisonData[$selectionKey] = [
                 'name' => $commodityName,
                 'unit' => $normalizedVolume['unit'],
-                'frequency' => ['2025' => array_fill(0, 12, 0), '2026' => array_fill(0, 12, 0)],
-                'volume' => ['2025' => array_fill(0, 12, 0.0), '2026' => array_fill(0, 12, 0.0)],
-                'value' => ['2025' => array_fill(0, 12, 0.0), '2026' => array_fill(0, 12, 0.0)],
+                'frequency' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0)),
+                'volume' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0.0)),
+                'value' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0.0)),
             ];
         }
         $commodityComparisonData[$selectionKey]['frequency'][$year][$month] += (int)($comparisonRow['frekuensi'] ?? 0);
@@ -270,7 +289,6 @@ if (!$comparisonPage) {
         $commodityComparisonData[$selectionKey]['value'][$year][$month] += (float)($comparisonRow['nilai_ekspor'] ?? 0);
     }
 }
-
 $allData = $allMonthlyData;
 if (!$comparisonPage) {
     $allData = aggregate_commodity_rows($allMonthlyData);
@@ -485,12 +503,13 @@ foreach ($data as $idx => $row) {
         $commodityComparisonData[$itemKey] = [
             'name' => $row['nama_komoditas'],
             'unit' => $row['satuan'] ?? 'Tidak diketahui',
-            'frequency' => ['2025' => array_fill(0, 12, 0), '2026' => array_fill(0, 12, 0)],
-            'volume' => ['2025' => array_fill(0, 12, 0.0), '2026' => array_fill(0, 12, 0.0)],
-            'value' => ['2025' => array_fill(0, 12, 0.0), '2026' => array_fill(0, 12, 0.0)],
+            'frequency' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0)),
+            'volume' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0.0)),
+            'value' => array_fill_keys($commodityComparisonYears, array_fill(0, 12, 0.0)),
         ];
     }
 }
+$selectedCommodityChart = $commodityComparisonData[$requestedCommodityChartKey] ?? null;
 $hiddenItems = $topN > 0 ? array_slice($allData, $topN) : [];
 if ($hiddenItems !== []) {
     $otherDestinationCounts = [];
@@ -550,7 +569,9 @@ function formatVolumeOtomatis($volume, $satuan) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $labelKegiatan ?> Komoditas Karantina <?= $labelKategori ?> - Balai Karantina Kalimantan Selatan</title>
+    <title><?= $commodityChartPage && $selectedCommodityChart
+        ? 'Grafik ' . htmlspecialchars($selectedCommodityChart['name'], ENT_QUOTES, 'UTF-8')
+        : $labelKegiatan . ' Komoditas Karantina ' . $labelKategori ?> - Balai Karantina Kalimantan Selatan</title>
     <link rel="stylesheet" href="<?= $assetPath ?>embed.css?v=<?= @filemtime(__DIR__ . '/embed.css') ?: time() ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
@@ -613,6 +634,7 @@ $activeFilterParams = $comparisonPage
     : $filterParams;
 $comparisonFilterParams = array_merge(['jenis' => $jenis, 'kategori' => $kategori], $activeFilterParams);
 $comparisonPageUrl = $assetPath . 'perbandingan.php?' . http_build_query($comparisonFilterParams);
+$commodityChartPageUrl = $assetPath . '../index.php?' . http_build_query($boardFilterParams);
 $urlParamsExtra = '&' . http_build_query($activeFilterParams);
 $topFilterUrls = [];
 foreach ([1, 3, 5, 10, 0] as $topOption) {
@@ -669,6 +691,135 @@ foreach ($yearOptions as $yearOption) {
 
 <div class="board-container">
 
+    <?php if ($commodityChartPage): ?>
+        <section class="commodity-chart-page" aria-labelledby="commodityChartTitle">
+            <a class="commodity-chart-back" href="<?= htmlspecialchars($commodityChartPageUrl, ENT_QUOTES, 'UTF-8') ?>">&larr; Kembali ke Board Publik</a>
+            <?php if ($selectedCommodityChart): ?>
+                <header class="commodity-chart-page-header">
+                    <div>
+                        <span class="commodity-chart-page-eyebrow">Grafik Komoditas</span>
+                        <h1 id="commodityChartTitle"><?= htmlspecialchars($selectedCommodityChart['name'], ENT_QUOTES, 'UTF-8') ?></h1>
+                        <p>Perbandingan bulanan tahun <?= htmlspecialchars($commodityComparisonYears[0] . ' dan ' . $commodityComparisonYears[1], ENT_QUOTES, 'UTF-8') ?></p>
+                    </div>
+                    <span class="commodity-chart-page-context"><?= htmlspecialchars($labelKategori . ' • ' . $labelKegiatan, ENT_QUOTES, 'UTF-8') ?></span>
+                </header>
+                <div class="commodity-chart-grid">
+                    <div class="commodity-chart-card">
+                        <div class="commodity-chart-card-header">
+                            <h2>Frekuensi (kali)</h2>
+                            <button type="button" class="commodity-chart-download" data-download-chart="commodityFrequencyChart" data-download-metric="frekuensi">Unduh PNG</button>
+                        </div>
+                        <div class="commodity-chart-canvas"><canvas id="commodityFrequencyChart"></canvas></div>
+                    </div>
+                    <div class="commodity-chart-card">
+                        <div class="commodity-chart-card-header">
+                            <h2>Volume (<?= htmlspecialchars($selectedCommodityChart['unit'], ENT_QUOTES, 'UTF-8') ?>)</h2>
+                            <button type="button" class="commodity-chart-download" data-download-chart="commodityVolumeChart" data-download-metric="volume">Unduh PNG</button>
+                        </div>
+                        <div class="commodity-chart-canvas"><canvas id="commodityVolumeChart"></canvas></div>
+                    </div>
+                    <div class="commodity-chart-card">
+                        <div class="commodity-chart-card-header">
+                            <h2>Nilai Komoditas (Miliar Rp)</h2>
+                            <button type="button" class="commodity-chart-download" data-download-chart="commodityValueChart" data-download-metric="nilai">Unduh PNG</button>
+                        </div>
+                        <div class="commodity-chart-canvas"><canvas id="commodityValueChart"></canvas></div>
+                    </div>
+                </div>
+                <script>
+                const commodityComparison = <?= json_encode($selectedCommodityChart, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+                const commodityComparisonYears = <?= json_encode($commodityComparisonYears) ?>;
+                const commodityChartName = <?= json_encode($selectedCommodityChart['name'], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+                const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                const datasetsFor = function(metric) {
+                    return commodityComparisonYears.map(function(year, index) {
+                        const color = index === 0 ? '#dc2626' : '#2563eb';
+                        return {
+                            label: year,
+                            data: commodityComparison[metric][year].map(function(value) {
+                                return metric === 'value' ? value / 1e9 : value;
+                            }),
+                            borderColor: color,
+                            backgroundColor: color,
+                            tension: 0.25
+                        };
+                    });
+                };
+                const optionsFor = function(metric) {
+                    return {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { intersect: false, mode: 'index' },
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: metric === 'value'
+                                    ? {
+                                        label: function(context) {
+                                            return context.dataset.label + ': Rp ' + Number(context.raw).toLocaleString('id-ID', {
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 2
+                                            }) + ' Miliar';
+                                        }
+                                    }
+                                    : {}
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: metric === 'value'
+                                        ? function(value) { return 'Rp ' + Number(value).toLocaleString('id-ID') + ' M'; }
+                                        : function(value) { return Number(value).toLocaleString('id-ID'); }
+                                }
+                            }
+                        }
+                    };
+                };
+                [
+                    ['commodityFrequencyChart', 'frequency'],
+                    ['commodityVolumeChart', 'volume'],
+                    ['commodityValueChart', 'value']
+                ].forEach(function(chartConfig) {
+                    new Chart(document.getElementById(chartConfig[0]), {
+                        type: 'line',
+                        data: { labels: monthLabels, datasets: datasetsFor(chartConfig[1]) },
+                        options: optionsFor(chartConfig[1])
+                    });
+                });
+                document.querySelectorAll('.commodity-chart-download').forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        const canvas = document.getElementById(this.dataset.downloadChart);
+                        const metric = this.dataset.downloadMetric;
+                        const safeName = commodityChartName.normalize('NFKD')
+                            .replace(/[\u0300-\u036f]/g, '')
+                            .replace(/[^a-zA-Z0-9]+/g, '-')
+                            .replace(/^-|-$/g, '')
+                            .toLowerCase();
+                        canvas.toBlob(function(blob) {
+                            if (!blob) {
+                                console.error('Grafik gagal dikonversi menjadi PNG.');
+                                return;
+                            }
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = safeName + '-' + metric + '-' + commodityComparisonYears.join('-') + '.png';
+                            link.click();
+                            window.setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+                        }, 'image/png');
+                    });
+                });
+                </script>
+            <?php else: ?>
+                <div class="commodity-chart-unavailable">
+                    <h1 id="commodityChartTitle">Grafik tidak tersedia</h1>
+                    <p>Data komoditas tidak ditemukan atau belum tersedia untuk perbandingan <?= htmlspecialchars(implode(' dan ', $commodityComparisonYears), ENT_QUOTES, 'UTF-8') ?>.</p>
+                </div>
+            <?php endif; ?>
+        </section>
+    <?php else: ?>
     <!-- Hero -->
     <section class="board-hero">
         <h1 class="board-hero-title"><?= $comparisonPage ? 'Mode Grafik' : 'Top ' . ($topN > 0 ? $topN : 'Semua') . ' Komoditas' ?> <?= $labelKategori ?> — <?= $labelKegiatan ?></h1>
@@ -1036,16 +1187,14 @@ foreach ($yearOptions as $yearOption) {
                                     <span class="tbr-pct"><?= $pct ?>%</span>
                                 </button>
                                 <?php if ($hasComparisonChart): ?>
-                                    <button
-                                        type="button"
+                                    <a
                                         class="commodity-chart-button"
-                                        data-chart-key="<?= htmlspecialchars($item['key'], ENT_QUOTES, 'UTF-8') ?>"
-                                        data-chart-name="<?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?>"
-                                        aria-label="Lihat grafik frekuensi dan volume <?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?>"
-                                        title="Bandingkan frekuensi dan volume 2025–2026"
+                                        href="<?= htmlspecialchars($assetPath . '../index.php?' . http_build_query(array_merge($boardFilterParams, ['grafik_komoditas' => $item['key']])), ENT_QUOTES, 'UTF-8') ?>"
+                                        aria-label="Buka grafik <?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?>"
+                                        title="Bandingkan data <?= htmlspecialchars($commodityComparisonYears[0] . '–' . $commodityComparisonYears[1], ENT_QUOTES, 'UTF-8') ?>"
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19V5m0 14h17M8 15l4-4 3 2 5-6"></path></svg>
-                                    </button>
+                                    </a>
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
@@ -1093,48 +1242,12 @@ foreach ($yearOptions as $yearOption) {
 
         </div>
 
-        <section class="commodity-chart-modal" id="commodityChartModal" role="dialog" aria-modal="true" aria-labelledby="commodityChartTitle" hidden>
-            <div class="commodity-chart-dialog">
-                <header class="commodity-chart-header">
-                    <div>
-                        <h2 id="commodityChartTitle">Perbandingan Komoditas</h2>
-                        <p>Perbandingan data bulanan tahun 2025 dan 2026</p>
-                    </div>
-                    <button type="button" class="commodity-chart-close" id="commodityChartClose" aria-label="Tutup grafik">&times;</button>
-                </header>
-                <div class="commodity-chart-grid">
-                    <div class="commodity-chart-card">
-                        <div class="commodity-chart-card-header">
-                            <h3>Frekuensi (kali)</h3>
-                            <button type="button" class="commodity-chart-download" data-download-chart="commodityFrequencyChart" data-download-metric="frekuensi">Unduh PNG</button>
-                        </div>
-                        <div class="commodity-chart-canvas"><canvas id="commodityFrequencyChart"></canvas></div>
-                    </div>
-                    <div class="commodity-chart-card">
-                        <div class="commodity-chart-card-header">
-                            <h3>Volume (<span id="commodityVolumeUnit">satuan</span>)</h3>
-                            <button type="button" class="commodity-chart-download" data-download-chart="commodityVolumeChart" data-download-metric="volume">Unduh PNG</button>
-                        </div>
-                        <div class="commodity-chart-canvas"><canvas id="commodityVolumeChart"></canvas></div>
-                    </div>
-                    <div class="commodity-chart-card">
-                        <div class="commodity-chart-card-header">
-                            <h3>Nilai Komoditas (Miliar Rp)</h3>
-                            <button type="button" class="commodity-chart-download" data-download-chart="commodityValueChart" data-download-metric="nilai">Unduh PNG</button>
-                        </div>
-                        <div class="commodity-chart-canvas"><canvas id="commodityValueChart"></canvas></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <script>
         const summaryLabels = <?= json_encode(array_column($summaryItems, 'name'), JSON_UNESCAPED_UNICODE) ?>;
         const summaryValues = <?= json_encode(array_map('floatval', array_column($summaryItems, 'value'))) ?>;
         const summaryColors = <?= json_encode(array_column($summaryItems, 'color')) ?>;
         const summaryUsesFrequency = <?= json_encode($urutan === 'frekuensi') ?>;
         const locationsByCommodity = <?= json_encode($locationsByCommodity, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-        const commodityComparisonData = <?= json_encode($commodityComparisonData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         const destinationLabel = <?= json_encode($labelArahUpper, JSON_UNESCAPED_UNICODE) ?>;
         const destinationList = document.getElementById('destinationList');
         const destinationPanelTitle = document.getElementById('destinationPanelTitle');
@@ -1238,121 +1351,6 @@ foreach ($yearOptions as $yearOption) {
             });
         }
 
-        const commodityChartModal = document.getElementById('commodityChartModal');
-        const commodityChartClose = document.getElementById('commodityChartClose');
-        let commodityCharts = [];
-        let activeChartTrigger = null;
-        function closeCommodityChart() {
-            commodityChartModal.hidden = true;
-            commodityCharts.forEach(function(chart) { chart.destroy(); });
-            commodityCharts = [];
-            if (activeChartTrigger) activeChartTrigger.focus();
-        }
-        document.querySelectorAll('.commodity-chart-button').forEach(function(button) {
-            button.addEventListener('click', function() {
-                const comparison = commodityComparisonData[this.dataset.chartKey];
-                if (!comparison) return;
-                commodityCharts.forEach(function(chart) { chart.destroy(); });
-                commodityCharts = [];
-                activeChartTrigger = this;
-                document.getElementById('commodityChartTitle').textContent = this.dataset.chartName;
-                document.getElementById('commodityVolumeUnit').textContent = comparison.unit;
-                commodityChartModal.hidden = false;
-                const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-                const datasetsFor = function(metric) {
-                    return ['2025', '2026'].map(function(year, index) {
-                        const color = index === 0 ? '#dc2626' : '#2563eb';
-                        return {
-                            label: year,
-                            data: comparison[metric][year].map(function(value) {
-                                return metric === 'value' ? value / 1e9 : value;
-                            }),
-                            borderColor: color,
-                            backgroundColor: color,
-                            tension: 0.25
-                        };
-                    });
-                };
-                const optionsFor = function(metric) {
-                    return {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: { intersect: false, mode: 'index' },
-                        plugins: {
-                            legend: { position: 'bottom' },
-                            tooltip: {
-                                callbacks: metric === 'value'
-                                    ? {
-                                        label: function(context) {
-                                            return context.dataset.label + ': Rp ' + Number(context.raw).toLocaleString('id-ID', {
-                                                minimumFractionDigits: 0,
-                                                maximumFractionDigits: 2
-                                            }) + ' Miliar';
-                                        }
-                                    }
-                                    : {}
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: metric === 'value'
-                                    ? {
-                                        callback: function(value) {
-                                            return 'Rp ' + Number(value).toLocaleString('id-ID') + ' M';
-                                        }
-                                    }
-                                    : {}
-                            }
-                        }
-                    };
-                };
-                [
-                    ['commodityFrequencyChart', 'frequency'],
-                    ['commodityVolumeChart', 'volume'],
-                    ['commodityValueChart', 'value']
-                ].forEach(function(chartConfig) {
-                    commodityCharts.push(new Chart(document.getElementById(chartConfig[0]), {
-                        type: 'line',
-                        data: { labels: monthLabels, datasets: datasetsFor(chartConfig[1]) },
-                        options: optionsFor(chartConfig[1])
-                    }));
-                });
-                commodityChartClose.focus();
-            });
-        });
-        document.querySelectorAll('.commodity-chart-download').forEach(function(button) {
-            button.addEventListener('click', function() {
-                const canvas = document.getElementById(this.dataset.downloadChart);
-                const chartName = document.getElementById('commodityChartTitle').textContent
-                    .normalize('NFKD')
-                    .replace(/[\u0300-\u036f]/g, '')
-                    .replace(/[^a-zA-Z0-9]+/g, '-')
-                    .replace(/^-|-$/g, '')
-                    .toLowerCase();
-                const metric = this.dataset.downloadMetric;
-                canvas.toBlob(function(blob) {
-                    if (!blob) {
-                        console.error('Grafik gagal dikonversi menjadi PNG.');
-                        return;
-                    }
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = chartName + '-' + metric + '-2025-2026.png';
-                    link.click();
-                    window.setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
-                }, 'image/png');
-            });
-        });
-        commodityChartClose.addEventListener('click', closeCommodityChart);
-        commodityChartModal.addEventListener('click', function(event) {
-            if (event.target === commodityChartModal) closeCommodityChart();
-        });
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && !commodityChartModal.hidden) closeCommodityChart();
-        });
-
         // 1. Donut Chart
         new Chart(document.getElementById('donutChartMaster'), {
             type: 'doughnut',
@@ -1440,6 +1438,7 @@ foreach ($yearOptions as $yearOption) {
         </script>
     <?php endif; ?>
 
+    <?php endif; ?>
 </div>
 
 <footer class="footer-komoditas">

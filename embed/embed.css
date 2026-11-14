@@ -598,6 +598,7 @@ body {
   background: #ffffff;
   color: var(--brand);
   cursor: pointer;
+  text-decoration: none;
 }
 
 .commodity-chart-button:hover {
@@ -632,63 +633,69 @@ body {
   font-size: 12px;
 }
 
-.commodity-chart-modal[hidden] {
-  display: none;
+.commodity-chart-page {
+  padding: 24px 0 40px;
 }
 
-.commodity-chart-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
+.commodity-chart-back {
+  display: inline-flex;
+  margin-bottom: 20px;
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.commodity-chart-back:hover {
+  text-decoration: underline;
+}
+
+.commodity-chart-page-header {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(15, 23, 42, 0.58);
-}
-
-.commodity-chart-dialog {
-  width: min(100%, 980px);
-  max-height: min(90vh, 760px);
-  overflow: auto;
-  padding: 22px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
-}
-
-.commodity-chart-header {
-  display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 20px;
+  margin-bottom: 22px;
 }
 
-.commodity-chart-header h2 {
-  margin: 0;
-  color: var(--ink);
-  font-size: 18px;
+.commodity-chart-page-eyebrow {
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.commodity-chart-header p {
-  margin: 4px 0 0;
-  color: var(--ink-muted);
-  font-size: 12px;
-}
-
-.commodity-chart-close {
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--bg);
+.commodity-chart-page-header h1,
+.commodity-chart-unavailable h1 {
+  margin: 4px 0;
   color: var(--ink);
   font-size: 26px;
-  line-height: 1;
-  cursor: pointer;
+  line-height: 1.25;
+}
+
+.commodity-chart-page-header p,
+.commodity-chart-unavailable p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.commodity-chart-page-context {
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.commodity-chart-unavailable {
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
 }
 
 .commodity-chart-grid {
@@ -714,6 +721,7 @@ body {
   margin-bottom: 10px;
 }
 
+.commodity-chart-card-header h2,
 .commodity-chart-card-header h3 {
   margin: 0;
   color: var(--ink-soft);
@@ -739,7 +747,7 @@ body {
 }
 
 .commodity-chart-canvas {
-  height: 270px;
+  height: 340px;
 }
 
 .tbr-badge {
@@ -943,12 +951,17 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .commodity-chart-dialog {
-    padding: 16px;
+  .commodity-chart-canvas {
+    height: 300px;
   }
 
-  .commodity-chart-canvas {
-    height: 220px;
+  .commodity-chart-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .commodity-chart-page-header h1 {
+    font-size: 22px;
   }
 }
 
@@ -1470,8 +1483,7 @@ body {
 
   .commodity-chart-button,
   .commodity-search,
-  .commodity-search-empty,
-  .commodity-chart-modal {
+  .commodity-search-empty {
     display: none !important;
   }
 
