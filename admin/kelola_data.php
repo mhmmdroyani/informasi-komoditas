@@ -510,6 +510,9 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                         </tbody>
                     </table>
                 </div>
+                <?php if (!empty($dataItems)): ?>
+                    <nav class="kelola-data-pagination" id="kelolaDataPagination" aria-label="Paginasi data" hidden></nav>
+                <?php endif; ?>
 
             </div>
     </div>
@@ -572,17 +575,107 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
     if (kelolaDataSearch) {
         const searchRows = Array.from(document.querySelectorAll('.kelola-data-search-row'));
         const noSearchResults = document.getElementById('kelolaDataNoSearchResults');
-        const updateSearchResults = function() {
-            const query = kelolaDataSearch.value.trim().toLocaleLowerCase('id-ID');
-            let visibleCount = 0;
-            searchRows.forEach(function(row) {
-                const matches = row.textContent.toLocaleLowerCase('id-ID').includes(query);
-                row.hidden = !matches;
-                if (matches) visibleCount++;
-            });
-            if (noSearchResults) noSearchResults.hidden = visibleCount > 0;
+        const pagination = document.getElementById('kelolaDataPagination');
+        const pageSize = 25;
+        let currentPage = 1;
+        let filteredRows = searchRows;
+
+        const appendPageButton = function(label, page, options) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'kelola-data-page-button' + (options.active ? ' is-active' : '');
+            button.textContent = label;
+            button.dataset.page = String(page);
+            button.setAttribute('aria-label', options.label);
+            if (options.active) button.setAttribute('aria-current', 'page');
+            if (options.disabled) button.disabled = true;
+            pagination.appendChild(button);
         };
-        kelolaDataSearch.addEventListener('input', updateSearchResults);
+
+        const appendEllipsis = function() {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'kelola-data-page-ellipsis';
+            ellipsis.textContent = '…';
+            pagination.appendChild(ellipsis);
+        };
+
+        const renderPagination = function() {
+            const pageCount = Math.ceil(filteredRows.length / pageSize);
+            pagination.replaceChildren();
+            pagination.hidden = pageCount <= 1;
+            if (pageCount <= 1) return;
+
+            appendPageButton('‹ Previous', Math.max(1, currentPage - 1), {
+                label: 'Halaman sebelumnya',
+                disabled: currentPage === 1
+            });
+
+            let pages;
+            if (pageCount <= 9) {
+                pages = Array.from({ length: pageCount }, (_, index) => index + 1);
+            } else if (currentPage <= 4) {
+                pages = [1, 2, 3, 4, 5, 6, 7, 'ellipsis', pageCount];
+            } else if (currentPage >= pageCount - 3) {
+                pages = [1, 'ellipsis', ...Array.from({ length: 7 }, (_, index) => pageCount - 6 + index)];
+            } else {
+                pages = [1, 'ellipsis', currentPage - 1, currentPage, currentPage + 1, 'ellipsis', pageCount];
+            }
+
+            pages.forEach(function(page) {
+                if (page === 'ellipsis') {
+                    appendEllipsis();
+                    return;
+                }
+                appendPageButton(String(page), page, {
+                    label: 'Halaman ' + page,
+                    active: page === currentPage
+                });
+            });
+
+            appendPageButton('Next ›', Math.min(pageCount, currentPage + 1), {
+                label: 'Halaman berikutnya',
+                disabled: currentPage === pageCount
+            });
+        };
+
+        const updateSearchResults = function(resetPage) {
+            const query = kelolaDataSearch.value.trim().toLocaleLowerCase('id-ID');
+            filteredRows = searchRows.filter(function(row) {
+                return row.textContent.toLocaleLowerCase('id-ID').includes(query);
+            });
+            if (resetPage) currentPage = 1;
+
+            const start = (currentPage - 1) * pageSize;
+            const visibleRows = new Set(filteredRows.slice(start, start + pageSize));
+            searchRows.forEach(function(row) {
+                row.hidden = !visibleRows.has(row);
+            });
+            if (noSearchResults) noSearchResults.hidden = filteredRows.length > 0;
+            renderPagination();
+        };
+
+        pagination.addEventListener('click', function(event) {
+            const button = event.target.closest('[data-page]');
+            if (!button || button.disabled) return;
+            currentPage = Number(button.dataset.page);
+            updateSearchResults(false);
+        });
+
+        kelolaDataSearch.addEventListener('input', function() {
+            updateSearchResults(true);
+        });
+        updateSearchResults(true);
+
+        window.addEventListener('beforeprint', function() {
+            searchRows.forEach(function(row) {
+                row.hidden = false;
+            });
+            if (noSearchResults) noSearchResults.hidden = true;
+            pagination.hidden = true;
+        });
+        window.addEventListener('afterprint', function() {
+            updateSearchResults(false);
+        });
     }
 
     </script>
