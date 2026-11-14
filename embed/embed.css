@@ -1518,9 +1518,9 @@ body {
 
   .kpi-card-canva {
     min-width: 0;
-    min-height: 30mm;
-    padding: 2.5mm;
-    gap: 2.5mm;
+    min-height: 36mm;
+    padding: 3mm;
+    gap: 3mm;
     border: 1px dashed #4b5563;
     border-radius: 2mm;
     box-shadow: none;
@@ -1529,17 +1529,17 @@ body {
   }
 
   .kpi-icon-circle svg {
-    width: 11mm;
-    height: 11mm;
+    width: 15mm;
+    height: 15mm;
   }
 
   .kpi-title-canva {
-    margin-bottom: 0.5mm;
-    font-size: 7.5pt;
+    margin-bottom: 1mm;
+    font-size: 9pt;
   }
 
   .kpi-number-canva {
-    font-size: 14pt;
+    font-size: 19pt;
   }
 
   .kpi-unit-canva,
@@ -1547,13 +1547,13 @@ body {
   .kpi-volume-row,
   .kpi-volume-row strong,
   .kpi-volume-row small {
-    font-size: 7pt;
+    font-size: 8.5pt;
   }
 
   .kpi-volume-row {
     grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-    gap: 0.7mm;
-    padding: 0.2mm 0;
+    gap: 1mm;
+    padding: 0.4mm 0;
   }
 
   .panels-row-canva {
