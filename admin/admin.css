@@ -705,6 +705,10 @@ input.field-input {
   color: var(--ink);
 }
 
+.upload-period-input {
+  width: min(100%, 280px);
+}
+
 .field-input:focus {
   outline: none;
   border-color: var(--brand);
