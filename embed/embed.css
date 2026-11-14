@@ -1598,15 +1598,33 @@ body {
   }
 
   .donut-layout {
-    gap: 1mm;
+    display: grid;
+    grid-template-columns: 25mm minmax(0, 1fr);
+    align-items: center;
+    justify-content: initial;
+    gap: 1.5mm;
+    min-width: 0;
   }
 
   .donut-chart-box {
-    width: 25mm;
-    height: 25mm;
+    width: 25mm !important;
+    height: 25mm !important;
+    min-width: 25mm;
+    max-width: 25mm;
+    flex: none;
+  }
+
+  .donut-chart-box canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   .donut-legend-list {
+    min-width: 0;
+    max-width: none;
     gap: 0.7mm;
   }
 
