@@ -1398,7 +1398,7 @@ body {
 @media print {
   @page {
     size: A4 landscape;
-    margin: 22mm 8mm 8mm;
+    margin: 8mm;
   }
 
   html,
@@ -1414,7 +1414,6 @@ body {
   }
 
   .board-topbar,
-  .board-hero,
   .board-print-header,
   .board-periode-badge,
   .kpi-card-canva,
@@ -1431,39 +1430,7 @@ body {
   }
 
   .board-print-header {
-    position: fixed;
-    top: -18mm;
-    right: 0;
-    left: 0;
-    z-index: 20;
-    display: flex;
-    height: 15mm;
-    align-items: center;
-    gap: 3mm;
-    padding: 1mm 0 2mm;
-    border-bottom: 1mm solid #17365d;
-    background: #ffffff;
-    color: #17365d;
-  }
-
-  .board-print-header img {
-    width: auto;
-    height: 12mm;
-    object-fit: contain;
-  }
-
-  .board-print-header div {
-    display: flex;
-    flex-direction: column;
-    gap: 1mm;
-  }
-
-  .board-print-header strong {
-    font-size: 10pt;
-  }
-
-  .board-print-header span {
-    font-size: 8pt;
+    display: none !important;
   }
 
   .board-topbar-inner,
@@ -1495,12 +1462,21 @@ body {
   }
 
   .board-hero {
-    display: none !important;
+    display: block !important;
+    margin: 0 0 3mm;
+    padding: 3mm 5mm;
+    border-radius: 2mm;
+    background: var(--brand-dark) !important;
+    text-align: center;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
   }
 
   .board-hero-title {
-    margin: 0 0 2mm;
-    font-size: 16pt;
+    margin: 0 0 1.5mm;
+    color: #ffffff !important;
+    font-size: 15pt;
+    line-height: 1.2;
   }
 
   .board-periode-wrap {
@@ -1508,21 +1484,28 @@ body {
   }
 
   .board-periode-badge {
-    padding: 1.5mm 4mm;
-    font-size: 9pt;
+    display: inline-block;
+    padding: 1mm 3mm;
+    border-radius: 2mm;
+    background: var(--gold) !important;
+    color: #ffffff !important;
+    font-size: 8pt;
+    box-shadow: none;
   }
 
   .kpi-row-canva {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 3mm;
+    align-items: stretch;
+    gap: 2.5mm;
     margin: 0 0 3mm;
   }
 
   .kpi-card-canva {
     min-width: 0;
-    padding: 3mm;
+    min-height: 30mm;
+    padding: 2.5mm;
     gap: 2mm;
-    border: 1px solid #d5dce5;
+    border: 1px dashed #4b5563;
     border-radius: 2mm;
     box-shadow: none;
     break-inside: avoid-page;
@@ -1530,17 +1513,17 @@ body {
   }
 
   .kpi-icon-circle svg {
-    width: 10mm;
-    height: 10mm;
+    width: 9mm;
+    height: 9mm;
   }
 
   .kpi-title-canva {
-    margin-bottom: 1mm;
-    font-size: 7pt;
+    margin-bottom: 0.5mm;
+    font-size: 6.5pt;
   }
 
   .kpi-number-canva {
-    font-size: 15pt;
+    font-size: 13pt;
   }
 
   .kpi-unit-canva,
@@ -1548,16 +1531,20 @@ body {
   .kpi-volume-row,
   .kpi-volume-row strong,
   .kpi-volume-row small {
-    font-size: 7pt;
+    font-size: 6pt;
   }
 
   .kpi-volume-row {
-    gap: 1mm;
-    padding: 0.3mm 0;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    gap: 0.7mm;
+    padding: 0.2mm 0;
   }
 
   .panels-row-canva {
-    display: block;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1.05fr);
+    align-items: stretch;
+    gap: 2.5mm;
     margin: 0;
     break-inside: auto;
     page-break-inside: auto;
@@ -1567,7 +1554,7 @@ body {
     display: flex;
     min-width: 0;
     overflow: visible;
-    margin: 0 0 4mm;
+    margin: 0;
     border: 1px solid #d5dce5;
     border-radius: 2mm;
     box-shadow: none;
@@ -1576,16 +1563,16 @@ body {
   }
 
   .panel-header-canva {
-    padding: 2mm 2.5mm;
+    padding: 1.5mm 2mm;
   }
 
   .panel-header-canva h3 {
-    font-size: 7pt;
+    font-size: 6.5pt;
   }
 
   .panel-body-canva {
     min-height: 0;
-    padding: 2.5mm;
+    padding: 2mm;
   }
 
   .top-commodity-panel-body {
@@ -1593,16 +1580,16 @@ body {
   }
 
   .donut-layout {
-    gap: 2mm;
+    gap: 1mm;
   }
 
   .donut-chart-box {
-    width: 32mm;
-    height: 32mm;
+    width: 25mm;
+    height: 25mm;
   }
 
   .donut-legend-list {
-    gap: 1mm;
+    gap: 0.7mm;
   }
 
   .legend-item-canva,
@@ -1610,29 +1597,29 @@ body {
   .legend-pct,
   .legend-com-name,
   .ph-text {
-    font-size: 7pt;
+    font-size: 6pt;
   }
 
   .panel-highlight-box {
-    margin-top: 2mm;
-    padding: 2mm;
+    margin-top: 1.5mm;
+    padding: 1.5mm;
   }
 
   .top-bar-items {
-    gap: 1mm;
+    gap: 0.5mm;
     margin-top: 0;
   }
 
   .top-bar-row {
-    gap: 1.5mm;
-    font-size: 7pt;
+    gap: 0.8mm;
+    font-size: 6pt;
     break-inside: avoid-page;
     page-break-inside: avoid;
   }
 
   .top-bar-select {
-    gap: 1.5mm;
-    font-size: 7pt;
+    gap: 0.8mm;
+    font-size: 6pt;
   }
 
   .commodity-chart-button,
@@ -1653,21 +1640,21 @@ body {
   }
 
   .bar-chart-container-canva {
-    flex: 0 0 58mm;
+    flex: 0 0 38mm;
     width: 100%;
-    height: 58mm;
-    min-height: 58mm;
-    margin: 2mm 0 0;
+    height: 38mm;
+    min-height: 38mm;
+    margin: 1.5mm 0 0;
   }
 
   .dest-list {
-    gap: 1.5mm;
+    gap: 1mm;
   }
 
   .dest-row {
-    gap: 1.5mm;
-    padding: 1.5mm 2mm;
-    font-size: 7pt;
+    gap: 1mm;
+    padding: 1mm 1.5mm;
+    font-size: 6pt;
     break-inside: avoid;
     page-break-inside: avoid;
   }
@@ -1740,6 +1727,21 @@ body {
   .panel-header-canva {
     break-after: avoid-page;
     page-break-after: avoid;
+  }
+
+  .board-detail-period {
+    margin: 2mm 0;
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+
+  .board-detail-period h2 {
+    font-size: 10pt;
+  }
+
+  .board-detail-period p {
+    margin-top: 0.5mm;
+    font-size: 7pt;
   }
 }
 
