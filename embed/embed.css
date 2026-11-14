@@ -710,34 +710,14 @@ body {
 }
 
 .commodity-summary-card .kpi-icon-circle svg {
-  width: 58px;
-  height: 58px;
-}
-
-.commodity-summary-card .kpi-icon-circle.value {
-  color: var(--accent-blue);
-}
-
-.commodity-summary-card .kpi-icon-circle.volume {
-  color: var(--brand);
-}
-
-.commodity-summary-card .kpi-icon-circle.frequency {
-  color: var(--accent-slate);
-}
-
-.commodity-summary-card .kpi-icon-circle.destination {
-  color: var(--accent-amber);
-}
-
-.commodity-summary-content .kpi-title-canva {
-  font-size: 14px;
+  width: 70px;
+  height: 70px;
 }
 
 .commodity-summary-years {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+  gap: 8px;
 }
 
 .commodity-summary-year {
@@ -763,11 +743,11 @@ body {
 
 .commodity-summary-year strong {
   overflow-wrap: anywhere;
-  font-size: 18px;
+  font-size: 24px;
 }
 
 .commodity-summary-unit {
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .commodity-chart-grid {
@@ -1044,6 +1024,9 @@ body {
 
 @media (max-width: 520px) {
   .kpi-row-canva {
+    grid-template-columns: 1fr;
+  }
+  .commodity-summary-grid {
     grid-template-columns: 1fr;
   }
   .board-hero-title {
