@@ -76,7 +76,13 @@ if (
 }
 $periodeOptions = array_keys($periodeOptionSet);
 sort($periodeOptions, SORT_STRING);
-$periodeA = trim($_GET['periode_a'] ?? ($periodeOptions[0] ?? ''));
+$requestedPeriodeA = is_string($_GET['periode_a'] ?? null) ? trim($_GET['periode_a']) : '';
+$requestedPeriodeB = is_string($_GET['periode_b'] ?? null) ? trim($_GET['periode_b']) : '';
+$isValidPeriod = static function (string $period): bool {
+    return preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $period, $matches)
+        && checkdate((int)$matches[2], 1, (int)$matches[1]);
+};
+$periodeA = $requestedPeriodeA;
 $defaultPeriodeB = (new DateTimeImmutable('first day of this month'))
     ->modify('-1 month')
     ->format('Y-m');
@@ -91,9 +97,9 @@ if (!in_array($defaultPeriodeB, $periodeOptions, true)) {
         ? end($availablePreviousPeriods)
         : ($periodeOptions[count($periodeOptions) - 1] ?? '');
 }
-$periodeB = trim($_GET['periode_b'] ?? $defaultPeriodeB);
-if (!in_array($periodeA, $periodeOptions, true)) $periodeA = $periodeOptions[0] ?? '';
-if (!in_array($periodeB, $periodeOptions, true)) $periodeB = $periodeOptions[count($periodeOptions) - 1] ?? '';
+$periodeB = $requestedPeriodeB;
+if (!$isValidPeriod($periodeA)) $periodeA = $periodeOptions[0] ?? '';
+if (!$isValidPeriod($periodeB)) $periodeB = $defaultPeriodeB;
 $rentangPeriodeAwal = min($periodeA, $periodeB);
 $rentangPeriodeAkhir = max($periodeA, $periodeB);
 $periodeFilter = $periodeB;
@@ -224,6 +230,44 @@ $sql .= " ORDER BY {$urutan} DESC, {$kolomUrutanSekunder} DESC, nama_komoditas A
 $stmtData = $pdo->prepare($sql);
 $stmtData->execute($queryParams);
 $allMonthlyData = $stmtData->fetchAll();
+
+$commodityComparisonData = [];
+if (!$comparisonPage) {
+    $itemComparisonStmt = $pdo->prepare(
+        "SELECT periode, nama_komoditas, volume, satuan, frekuensi
+         FROM ekspor_komoditas
+         WHERE jenis_kegiatan = ? AND kategori = ? AND is_published = 1
+             AND periode >= '2025-01' AND periode <= '2026-12'
+             AND periode REGEXP '^[0-9]{4}-(0[1-9]|1[0-2])$'
+         ORDER BY periode"
+    );
+    $itemComparisonStmt->execute([$jenis, $kategori]);
+    foreach ($itemComparisonStmt->fetchAll(PDO::FETCH_ASSOC) as $comparisonRow) {
+        if (!preg_match('/^(2025|2026)-(0[1-9]|1[0-2])$/', (string)$comparisonRow['periode'], $matches)) {
+            continue;
+        }
+        $normalizedVolume = normalize_compatible_volume_unit(
+            $comparisonRow['volume'] ?? 0,
+            $comparisonRow['satuan'] ?? ''
+        );
+        $commodityName = normalize_commodity_group_name($comparisonRow['nama_komoditas'] ?? '');
+        $commodityKey = strtolower(preg_replace('/\s+/', ' ', $commodityName));
+        $unitKey = strtolower(preg_replace('/\s+/', ' ', $normalizedVolume['unit']));
+        $selectionKey = hash('sha256', $commodityKey . "\0" . $unitKey);
+        $year = $matches[1];
+        $month = (int)$matches[2] - 1;
+        if (!isset($commodityComparisonData[$selectionKey])) {
+            $commodityComparisonData[$selectionKey] = [
+                'name' => $commodityName,
+                'unit' => $normalizedVolume['unit'],
+                'frequency' => ['2025' => array_fill(0, 12, 0), '2026' => array_fill(0, 12, 0)],
+                'volume' => ['2025' => array_fill(0, 12, 0.0), '2026' => array_fill(0, 12, 0.0)],
+            ];
+        }
+        $commodityComparisonData[$selectionKey]['frequency'][$year][$month] += (int)($comparisonRow['frekuensi'] ?? 0);
+        $commodityComparisonData[$selectionKey]['volume'][$year][$month] += $normalizedVolume['volume'];
+    }
+}
 
 $allData = $allMonthlyData;
 if (!$comparisonPage) {
@@ -426,14 +470,23 @@ if (!empty($data)) {
 $colors = ['#0f766e', '#2563eb', '#b45309', '#64748b', '#7c3aed'];
 $summaryItems = [];
 foreach ($data as $idx => $row) {
+    $itemKey = $row['_selection_key'] ?? '';
     $summaryItems[] = [
-        'key' => $row['_selection_key'] ?? '',
+        'key' => $itemKey,
         'name' => ($kategori === 'ikan' && !empty($row['nama_komoditas_lokal']))
             ? $row['nama_komoditas_lokal']
             : $row['nama_komoditas'],
         'value' => (float)$row[$urutan],
         'color' => $colors[$idx % count($colors)],
     ];
+    if ($itemKey !== '' && !isset($commodityComparisonData[$itemKey])) {
+        $commodityComparisonData[$itemKey] = [
+            'name' => $row['nama_komoditas'],
+            'unit' => $row['satuan'] ?? 'Tidak diketahui',
+            'frequency' => ['2025' => array_fill(0, 12, 0), '2026' => array_fill(0, 12, 0)],
+            'volume' => ['2025' => array_fill(0, 12, 0.0), '2026' => array_fill(0, 12, 0.0)],
+        ];
+    }
 }
 $hiddenItems = $topN > 0 ? array_slice($allData, $topN) : [];
 if ($hiddenItems !== []) {
@@ -500,6 +553,18 @@ function formatVolumeOtomatis($volume, $satuan) {
     <script>
     (() => {
         const key = 'boardFilterScroll';
+        window.navigateBoardPeriod = function(changedPeriod) {
+            const periodA = document.getElementById('boardPeriodeA');
+            const periodB = document.getElementById('boardPeriodeB');
+            if (!periodA || !periodB || !periodA.value || !periodB.value) return;
+            if (changedPeriod === 'a') {
+                periodB.value = periodA.value;
+            }
+            const params = new URLSearchParams(window.location.search);
+            params.set('periode_a', periodA.value);
+            params.set('periode_b', periodB.value);
+            window.navigateBoardFilter(window.location.pathname + '?' + params.toString());
+        };
         window.navigateBoardFilter = function(url) {
             try {
                 sessionStorage.setItem(key, JSON.stringify({
@@ -570,19 +635,6 @@ foreach ($yearOptions as $yearOption) {
     $params['tahun_b'] = $yearOption;
     $comparisonYearBUrls[$yearOption] = '?' . http_build_query($params);
 }
-$periodeAUrls = [];
-foreach ($periodeOptions as $periodOption) {
-    $params = $boardFilterParams;
-    $params['periode_a'] = $periodOption;
-    $params['periode_b'] = $periodOption;
-    $periodeAUrls[$periodOption] = '?' . http_build_query($params);
-}
-$periodeBUrls = [];
-foreach ($periodeOptions as $periodOption) {
-    $params = $boardFilterParams;
-    $params['periode_b'] = $periodOption;
-    $periodeBUrls[$periodOption] = '?' . http_build_query($params);
-}
 ?>
 
 <!-- Top Bar -->
@@ -603,6 +655,14 @@ foreach ($periodeOptions as $periodOption) {
         <?php endif; ?>
     </div>
 </header>
+
+<div class="board-print-header" aria-hidden="true">
+    <img src="<?= $assetPath ?>logo-barantin.png" alt="">
+    <div>
+        <strong>Badan Karantina Indonesia — Balai Karantina Kalimantan Selatan</strong>
+        <span><?= htmlspecialchars(($comparisonPage ? 'Mode Grafik' : 'Board Publik') . ' • ' . $labelKategori . ' • ' . $labelKegiatan . ' • ' . str_replace(' - ', ' – ', $labelTahunPublik)) ?></span>
+    </div>
+</div>
 
 <div class="board-container">
 
@@ -666,26 +726,12 @@ foreach ($periodeOptions as $periodOption) {
             <?php else: ?>
                 <label class="hero-select-field">
                     <span class="hero-filter-label">Periode A</span>
-                    <select name="periode_a" aria-label="Pilih bulan periode A" onchange="navigateBoardFilter(this.value)" <?= empty($periodeOptions) ? 'disabled' : '' ?>>
-                        <?php foreach ($periodeOptions as $periodOption): ?>
-                            <option value="<?= htmlspecialchars($periodeAUrls[$periodOption], ENT_QUOTES, 'UTF-8') ?>" <?= $periodeA === $periodOption ? 'selected' : '' ?>><?= htmlspecialchars(format_label_periode_kode($periodOption) ?: $periodOption) ?></option>
-                        <?php endforeach; ?>
-                        <?php if (empty($periodeOptions)): ?>
-                            <option value="">Belum ada data bulanan</option>
-                        <?php endif; ?>
-                    </select>
+                    <input type="month" id="boardPeriodeA" value="<?= htmlspecialchars($periodeA) ?>" min="<?= htmlspecialchars($periodeOptions[0] ?? '') ?>" max="<?= htmlspecialchars($periodeOptions[count($periodeOptions) - 1] ?? '') ?>" aria-label="Pilih bulan dan tahun periode A" onchange="navigateBoardPeriod('a')">
                 </label>
 
                 <label class="hero-select-field">
                     <span class="hero-filter-label">Periode B</span>
-                    <select name="periode_b" aria-label="Pilih bulan periode B" onchange="navigateBoardFilter(this.value)" <?= empty($periodeOptions) ? 'disabled' : '' ?>>
-                        <?php foreach ($periodeOptions as $periodOption): ?>
-                            <option value="<?= htmlspecialchars($periodeBUrls[$periodOption], ENT_QUOTES, 'UTF-8') ?>" <?= $periodeB === $periodOption ? 'selected' : '' ?>><?= htmlspecialchars(format_label_periode_kode($periodOption) ?: $periodOption) ?></option>
-                        <?php endforeach; ?>
-                        <?php if (empty($periodeOptions)): ?>
-                            <option value="">Belum ada data bulanan</option>
-                        <?php endif; ?>
-                    </select>
+                    <input type="month" id="boardPeriodeB" value="<?= htmlspecialchars($periodeB) ?>" min="<?= htmlspecialchars($periodeOptions[0] ?? '') ?>" max="<?= htmlspecialchars($periodeOptions[count($periodeOptions) - 1] ?? '') ?>" aria-label="Pilih bulan dan tahun periode B" onchange="navigateBoardPeriod('b')">
                 </label>
             <?php endif; ?>
 
@@ -961,15 +1007,37 @@ foreach ($periodeOptions as $periodOption) {
                     <h3>Top Komoditas berdasarkan <?= htmlspecialchars($summaryMetricLabel) ?></h3>
                 </div>
                 <div class="panel-body-canva top-commodity-panel-body">
+                    <?php if ($topN === 0): ?>
+                        <label class="commodity-search">
+                            <span>Cari komoditas</span>
+                            <input type="search" id="commoditySearch" placeholder="Ketik nama komoditas..." autocomplete="off">
+                        </label>
+                        <p class="commodity-search-empty" id="commoditySearchEmpty" hidden>Komoditas tidak ditemukan.</p>
+                    <?php endif; ?>
                     <div class="top-bar-items">
                         <?php foreach ($summaryItems as $i => $item):
                             $pct = $summaryTotal > 0 ? round(($item['value'] / $summaryTotal) * 100, 1) : 0;
+                            $hasComparisonChart = isset($commodityComparisonData[$item['key']]);
                         ?>
-                            <div class="top-bar-row" role="button" tabindex="0" aria-pressed="false" data-selection-key="<?= htmlspecialchars($item['key'], ENT_QUOTES, 'UTF-8') ?>" aria-label="Tampilkan <?= htmlspecialchars($labelArahUpper . ' untuk ' . $item['name'], ENT_QUOTES, 'UTF-8') ?>">
-                                <span class="tbr-badge"><?= $i + 1 ?></span>
-                                <span class="tbr-label"><?= htmlspecialchars($item['name']) ?></span>
-                                <span class="tbr-val"><?= $urutan === 'frekuensi' ? format_angka($item['value']) . ' kali' : format_rupiah_singkat($item['value']) ?></span>
-                                <span class="tbr-pct"><?= $pct ?>%</span>
+                            <div class="top-bar-row" data-selection-key="<?= htmlspecialchars($item['key'], ENT_QUOTES, 'UTF-8') ?>">
+                                <button type="button" class="top-bar-select" aria-pressed="false" aria-label="Tampilkan <?= htmlspecialchars($labelArahUpper . ' untuk ' . $item['name'], ENT_QUOTES, 'UTF-8') ?>">
+                                    <span class="tbr-badge"><?= $i + 1 ?></span>
+                                    <span class="tbr-label"><?= htmlspecialchars($item['name']) ?></span>
+                                    <span class="tbr-val"><?= $urutan === 'frekuensi' ? format_angka($item['value']) . ' kali' : format_rupiah_singkat($item['value']) ?></span>
+                                    <span class="tbr-pct"><?= $pct ?>%</span>
+                                </button>
+                                <?php if ($hasComparisonChart): ?>
+                                    <button
+                                        type="button"
+                                        class="commodity-chart-button"
+                                        data-chart-key="<?= htmlspecialchars($item['key'], ENT_QUOTES, 'UTF-8') ?>"
+                                        data-chart-name="<?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?>"
+                                        aria-label="Lihat grafik frekuensi dan volume <?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?>"
+                                        title="Bandingkan frekuensi dan volume 2025–2026"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19V5m0 14h17M8 15l4-4 3 2 5-6"></path></svg>
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -1016,12 +1084,35 @@ foreach ($periodeOptions as $periodOption) {
 
         </div>
 
+        <section class="commodity-chart-modal" id="commodityChartModal" role="dialog" aria-modal="true" aria-labelledby="commodityChartTitle" hidden>
+            <div class="commodity-chart-dialog">
+                <header class="commodity-chart-header">
+                    <div>
+                        <h2 id="commodityChartTitle">Perbandingan Komoditas</h2>
+                        <p>Perbandingan data bulanan tahun 2025 dan 2026</p>
+                    </div>
+                    <button type="button" class="commodity-chart-close" id="commodityChartClose" aria-label="Tutup grafik">&times;</button>
+                </header>
+                <div class="commodity-chart-grid">
+                    <div class="commodity-chart-card">
+                        <h3>Frekuensi (kali)</h3>
+                        <div><canvas id="commodityFrequencyChart"></canvas></div>
+                    </div>
+                    <div class="commodity-chart-card">
+                        <h3>Volume (<span id="commodityVolumeUnit">satuan</span>)</h3>
+                        <div><canvas id="commodityVolumeChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <script>
         const summaryLabels = <?= json_encode(array_column($summaryItems, 'name'), JSON_UNESCAPED_UNICODE) ?>;
         const summaryValues = <?= json_encode(array_map('floatval', array_column($summaryItems, 'value'))) ?>;
         const summaryColors = <?= json_encode(array_column($summaryItems, 'color')) ?>;
         const summaryUsesFrequency = <?= json_encode($urutan === 'frekuensi') ?>;
         const locationsByCommodity = <?= json_encode($locationsByCommodity, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+        const commodityComparisonData = <?= json_encode($commodityComparisonData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         const destinationLabel = <?= json_encode($labelArahUpper, JSON_UNESCAPED_UNICODE) ?>;
         const destinationList = document.getElementById('destinationList');
         const destinationPanelTitle = document.getElementById('destinationPanelTitle');
@@ -1029,15 +1120,17 @@ foreach ($periodeOptions as $periodOption) {
         const defaultDestinationRows = Array.from(destinationList.children).map(function(item) {
             return item.cloneNode(true);
         });
+        let masterBarChart = null;
 
         function showCommodityDestinations(row) {
-            if (row.getAttribute('aria-pressed') === 'true') {
+            const selectButton = row.querySelector('.top-bar-select');
+            if (selectButton.getAttribute('aria-pressed') === 'true') {
                 destinationPanelTitle.textContent = defaultDestinationTitle;
                 destinationList.replaceChildren(...defaultDestinationRows.map(function(item) {
                     return item.cloneNode(true);
                 }));
                 row.classList.remove('is-selected');
-                row.setAttribute('aria-pressed', 'false');
+                selectButton.setAttribute('aria-pressed', 'false');
                 return;
             }
 
@@ -1084,20 +1177,104 @@ foreach ($periodeOptions as $periodOption) {
 
             document.querySelectorAll('.top-bar-row[data-selection-key]').forEach(function(candidate) {
                 candidate.classList.toggle('is-selected', candidate === row);
-                candidate.setAttribute('aria-pressed', candidate === row ? 'true' : 'false');
+                candidate.querySelector('.top-bar-select').setAttribute('aria-pressed', candidate === row ? 'true' : 'false');
             });
         }
 
         document.querySelectorAll('.top-bar-row[data-selection-key]').forEach(function(row) {
-            row.addEventListener('click', function() {
+            row.querySelector('.top-bar-select').addEventListener('click', function() {
                 showCommodityDestinations(row);
             });
-            row.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    showCommodityDestinations(row);
+        });
+
+        const commoditySearch = document.getElementById('commoditySearch');
+        if (commoditySearch) {
+            commoditySearch.addEventListener('input', function() {
+                const searchTerm = this.value.trim().toLocaleLowerCase('id-ID');
+                let visibleCount = 0;
+                document.querySelectorAll('.top-bar-row').forEach(function(row) {
+                    const matches = row.querySelector('.tbr-label').textContent.toLocaleLowerCase('id-ID').includes(searchTerm);
+                    row.hidden = !matches;
+                    if (matches) visibleCount++;
+                });
+                document.getElementById('commoditySearchEmpty').hidden = visibleCount > 0;
+                if (masterBarChart) {
+                    const matchedIndexes = summaryLabels
+                        .map(function(label, index) {
+                            return label.toLocaleLowerCase('id-ID').includes(searchTerm) ? index : -1;
+                        })
+                        .filter(function(index) { return index >= 0; });
+                    masterBarChart.data.labels = matchedIndexes.map(function(index) {
+                        const label = summaryLabels[index];
+                        return label.length > 15 ? label.substring(0, 15) + '...' : label;
+                    });
+                    masterBarChart.data.datasets[0].data = matchedIndexes.map(function(index) {
+                        return summaryUsesFrequency ? summaryValues[index] : summaryValues[index] / 1e9;
+                    });
+                    masterBarChart.update();
                 }
             });
+        }
+
+        const commodityChartModal = document.getElementById('commodityChartModal');
+        const commodityChartClose = document.getElementById('commodityChartClose');
+        let commodityCharts = [];
+        let activeChartTrigger = null;
+        function closeCommodityChart() {
+            commodityChartModal.hidden = true;
+            commodityCharts.forEach(function(chart) { chart.destroy(); });
+            commodityCharts = [];
+            if (activeChartTrigger) activeChartTrigger.focus();
+        }
+        document.querySelectorAll('.commodity-chart-button').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const comparison = commodityComparisonData[this.dataset.chartKey];
+                if (!comparison) return;
+                commodityCharts.forEach(function(chart) { chart.destroy(); });
+                commodityCharts = [];
+                activeChartTrigger = this;
+                document.getElementById('commodityChartTitle').textContent = this.dataset.chartName;
+                document.getElementById('commodityVolumeUnit').textContent = comparison.unit;
+                commodityChartModal.hidden = false;
+                const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                const datasetsFor = function(metric) {
+                    return ['2025', '2026'].map(function(year, index) {
+                        const color = index === 0 ? '#2563eb' : '#0f766e';
+                        return {
+                            label: year,
+                            data: comparison[metric][year],
+                            borderColor: color,
+                            backgroundColor: color,
+                            tension: 0.25
+                        };
+                    });
+                };
+                const options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true } }
+                };
+                commodityCharts.push(new Chart(document.getElementById('commodityFrequencyChart'), {
+                    type: 'line',
+                    data: { labels: monthLabels, datasets: datasetsFor('frequency') },
+                    options: options
+                }));
+                commodityCharts.push(new Chart(document.getElementById('commodityVolumeChart'), {
+                    type: 'line',
+                    data: { labels: monthLabels, datasets: datasetsFor('volume') },
+                    options: options
+                }));
+                commodityChartClose.focus();
+            });
+        });
+        commodityChartClose.addEventListener('click', closeCommodityChart);
+        commodityChartModal.addEventListener('click', function(event) {
+            if (event.target === commodityChartModal) closeCommodityChart();
+        });
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && !commodityChartModal.hidden) closeCommodityChart();
         });
 
         // 1. Donut Chart
@@ -1134,7 +1311,7 @@ foreach ($periodeOptions as $periodOption) {
 
         // 2. Bar Chart
         const barLabels = summaryLabels.map(l => l.length > 15 ? l.substring(0, 15) + '...' : l);
-        new Chart(document.getElementById('barChartMaster'), {
+        masterBarChart = new Chart(document.getElementById('barChartMaster'), {
             type: 'bar',
             data: {
                 labels: barLabels,

@@ -94,6 +94,10 @@ if (
 }
 $validPeriods = array_keys($periodSet);
 sort($validPeriods, SORT_STRING);
+$isValidPeriod = static function (string $period): bool {
+    return preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $period, $matches)
+        && checkdate((int)$matches[2], 1, (int)$matches[1]);
+};
 $defaultPeriodeB = (new DateTimeImmutable('first day of this month'))
     ->modify('-1 month')
     ->format('Y-m');
@@ -108,10 +112,10 @@ if (!in_array($defaultPeriodeB, $validPeriods, true)) {
         ? end($availablePreviousPeriods)
         : ($validPeriods[count($validPeriods) - 1] ?? '');
 }
-$periodeA = in_array($requestedPeriodA, $validPeriods, true)
+$periodeA = $isValidPeriod($requestedPeriodA)
     ? $requestedPeriodA
     : $defaultPeriodeB;
-$periodeB = in_array($requestedPeriodB, $validPeriods, true)
+$periodeB = $isValidPeriod($requestedPeriodB)
     ? $requestedPeriodB
     : $defaultPeriodeB;
 $periodeFilter = $periodeB;
@@ -358,23 +362,11 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <div id="periodeAFilterWrap" style="display: flex; align-items: center; gap: 6px;">
                             <label for="periodeAFilter" style="font-weight: 600; color: var(--ink-soft);">Periode A:</label>
-                            <select id="periodeAFilter" class="field-input" onchange="updatePeriodRange('a')" style="width: 175px; padding: 7px 10px; font-size: 12px;">
-                                <option value="">Pilih periode</option>
-                                <?php foreach ($validPeriods as $periodeOption): ?>
-                                    <?php $periodeLabel = format_label_periode_kode($periodeOption) ?: $periodeOption; ?>
-                                    <option value="<?= htmlspecialchars($periodeOption) ?>" <?= $periodeA === $periodeOption ? 'selected' : '' ?>><?= htmlspecialchars($periodeLabel) ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="month" id="periodeAFilter" class="field-input" value="<?= htmlspecialchars($periodeA) ?>" min="<?= htmlspecialchars($validPeriods[0] ?? '') ?>" max="<?= htmlspecialchars($validPeriods[count($validPeriods) - 1] ?? '') ?>" onchange="updatePeriodRange('a')" style="width: 175px; padding: 7px 10px; font-size: 12px;">
                         </div>
                         <div id="periodeBFilterWrap" style="display: flex; align-items: center; gap: 6px;">
                             <label for="periodeBFilter" style="font-weight: 600; color: var(--ink-soft);">Periode B:</label>
-                            <select id="periodeBFilter" class="field-input" onchange="updatePeriodRange('b')" style="width: 175px; padding: 7px 10px; font-size: 12px;">
-                                <option value="">Pilih periode</option>
-                                <?php foreach ($validPeriods as $periodeOption): ?>
-                                    <?php $periodeLabel = format_label_periode_kode($periodeOption) ?: $periodeOption; ?>
-                                    <option value="<?= htmlspecialchars($periodeOption) ?>" <?= $periodeB === $periodeOption ? 'selected' : '' ?>><?= htmlspecialchars($periodeLabel) ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="month" id="periodeBFilter" class="field-input" value="<?= htmlspecialchars($periodeB) ?>" min="<?= htmlspecialchars($validPeriods[0] ?? '') ?>" max="<?= htmlspecialchars($validPeriods[count($validPeriods) - 1] ?? '') ?>" onchange="updatePeriodRange('b')" style="width: 175px; padding: 7px 10px; font-size: 12px;">
                         </div>
                     </div>
                     <div class="kelola-data-toolbar-right" style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-left: auto;">
