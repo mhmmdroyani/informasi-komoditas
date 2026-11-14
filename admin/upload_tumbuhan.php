@@ -118,7 +118,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- Kalender Pemilihan Bulan Data -->
                 <div class="card card-pad" style="background: var(--bg);">
                     <label class="field-label" style="display: block; margin-bottom: 12px;">Pilih Bulan Data <span style="color: var(--danger);">*</span></label>
-                    <input type="month" name="periode" value="<?= date('Y-m', strtotime('first day of last month')) ?>" required class="field-input upload-period-input">
+                    <div class="upload-period-control">
+                        <input type="month" id="uploadPeriod" name="periode" value="<?= date('Y-m', strtotime('first day of last month')) ?>" required class="field-input upload-period-input">
+                        <button type="button" class="upload-period-picker" id="uploadPeriodPicker" aria-label="Buka pemilih bulan">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+                        </button>
+                    </div>
                     <p class="field-hint">Satu file Excel mentah direkap untuk satu bulan yang dipilih.</p>
                 </div>
 
@@ -175,12 +180,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <script>
     (() => {
+        const period = document.getElementById('uploadPeriod');
+        const periodPicker = document.getElementById('uploadPeriodPicker');
         const nihil = document.getElementById('markNihil');
         const file = document.getElementById('fileExcel');
         const dropzone = document.getElementById('fileDropzone');
         const fileName = document.getElementById('fileExcelName');
         const feedback = document.getElementById('fileExcelFeedback');
         const allowedExtensions = /\.(xlsx|xls|csv)$/i;
+
+        periodPicker.addEventListener('click', () => {
+            if (typeof period.showPicker === 'function') {
+                period.showPicker();
+            } else {
+                period.focus();
+                period.click();
+            }
+        });
 
         const showFile = selectedFile => {
             feedback.textContent = '';
