@@ -693,7 +693,9 @@ foreach ($yearOptions as $yearOption) {
     <img src="<?= $assetPath ?>logo-barantin.png" alt="">
     <div>
         <strong>Badan Karantina Indonesia — Balai Karantina Kalimantan Selatan</strong>
-        <span><?= htmlspecialchars(($comparisonPage ? 'Mode Grafik' : 'Board Publik') . ' • ' . $labelKategori . ' • ' . $labelKegiatan . ' • ' . str_replace(' - ', ' – ', $labelTahunPublik)) ?></span>
+        <span><?= htmlspecialchars(($commodityChartPage
+            ? 'Grafik Komoditas • ' . ($selectedCommodityChart['name'] ?? 'Tidak tersedia') . ' • ' . implode(' – ', $commodityComparisonYears)
+            : ($comparisonPage ? 'Mode Grafik' : 'Board Publik') . ' • ' . $labelKategori . ' • ' . $labelKegiatan . ' • ' . str_replace(' - ', ' – ', $labelTahunPublik))) ?></span>
     </div>
 </div>
 
@@ -701,7 +703,22 @@ foreach ($yearOptions as $yearOption) {
 
     <?php if ($commodityChartPage): ?>
         <section class="commodity-chart-page" aria-labelledby="commodityChartTitle">
-            <a class="commodity-chart-back" href="<?= htmlspecialchars($commodityChartPageUrl, ENT_QUOTES, 'UTF-8') ?>">&larr; Kembali ke Board Publik</a>
+            <section class="board-hero commodity-chart-hero">
+                <a class="commodity-chart-back" href="<?= htmlspecialchars($commodityChartPageUrl, ENT_QUOTES, 'UTF-8') ?>">&larr; Kembali ke Board Publik</a>
+                <h1 class="board-hero-title" id="commodityChartTitle">
+                    Grafik <?= $selectedCommodityChart
+                        ? htmlspecialchars($selectedCommodityChart['name'], ENT_QUOTES, 'UTF-8')
+                        : 'Komoditas' ?>
+                    — <?= htmlspecialchars($labelKegiatan, ENT_QUOTES, 'UTF-8') ?>
+                </h1>
+                <div class="board-periode-wrap">
+                    <span class="board-periode-badge">Perbandingan <?= htmlspecialchars($commodityComparisonYears[0] . ' – ' . $commodityComparisonYears[1], ENT_QUOTES, 'UTF-8') ?></span>
+                </div>
+                <button class="board-download-btn" type="button" onclick="openPrintBoard()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg>
+                    Cetak
+                </button>
+            </section>
             <?php if ($selectedCommodityChart): ?>
                 <?php
                 $commodityMetricCards = [
@@ -740,14 +757,6 @@ foreach ($yearOptions as $yearOption) {
                     ];
                 }
                 ?>
-                <header class="commodity-chart-page-header">
-                    <div>
-                        <span class="commodity-chart-page-eyebrow">Grafik Komoditas</span>
-                        <h1 id="commodityChartTitle"><?= htmlspecialchars($selectedCommodityChart['name'], ENT_QUOTES, 'UTF-8') ?></h1>
-                        <p>Perbandingan bulanan tahun <?= htmlspecialchars($commodityComparisonYears[0] . ' dan ' . $commodityComparisonYears[1], ENT_QUOTES, 'UTF-8') ?></p>
-                    </div>
-                    <span class="commodity-chart-page-context"><?= htmlspecialchars($labelKategori . ' • ' . $labelKegiatan, ENT_QUOTES, 'UTF-8') ?></span>
-                </header>
                 <section class="commodity-summary-grid" aria-label="Ringkasan tahunan komoditas">
                     <?php foreach ($commodityMetricCards as $metricCard): ?>
                         <?php
@@ -890,7 +899,7 @@ foreach ($yearOptions as $yearOption) {
                 </script>
             <?php else: ?>
                 <div class="commodity-chart-unavailable">
-                    <h1 id="commodityChartTitle">Grafik tidak tersedia</h1>
+                    <h2>Grafik tidak tersedia</h2>
                     <p>Data komoditas tidak ditemukan atau belum tersedia untuk perbandingan <?= htmlspecialchars(implode(' dan ', $commodityComparisonYears), ENT_QUOTES, 'UTF-8') ?>.</p>
                 </div>
             <?php endif; ?>

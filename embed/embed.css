@@ -637,6 +637,37 @@ body {
   padding: 24px 0 40px;
 }
 
+.commodity-chart-hero {
+  margin-top: 0;
+  padding-top: 24px;
+}
+
+.commodity-chart-hero .commodity-chart-back {
+  position: absolute;
+  top: 18px;
+  left: 24px;
+  margin: 0;
+  padding: 7px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.commodity-chart-hero .commodity-chart-back:hover {
+  background: rgba(255, 255, 255, 0.22);
+  text-decoration: none;
+}
+
+.commodity-chart-hero .board-hero-title {
+  margin: 18px 110px 10px;
+}
+
+.commodity-chart-hero .board-periode-wrap {
+  margin: 4px 0 0;
+}
+
 .commodity-chart-back {
   display: inline-flex;
   margin-bottom: 20px;
@@ -1016,8 +1047,13 @@ body {
     flex-direction: column;
   }
 
-  .commodity-chart-page-header h1 {
-    font-size: 22px;
+  .commodity-chart-hero .commodity-chart-back {
+    position: static;
+    margin-bottom: 10px;
+  }
+
+  .commodity-chart-hero .board-hero-title {
+    margin: 0 0 10px;
   }
 
 }
