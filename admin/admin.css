@@ -706,7 +706,17 @@ input.field-input {
 }
 
 .upload-period-input {
+  position: relative;
   width: min(100%, 280px);
+  padding-left: 36px;
+}
+
+.upload-period-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  left: 10px;
+  right: auto;
+  margin: 0;
+  cursor: pointer;
 }
 
 .field-input:focus {
