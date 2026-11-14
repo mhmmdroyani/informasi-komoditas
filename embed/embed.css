@@ -738,7 +738,7 @@ body {
   background: var(--brand-soft);
 }
 
-.commodity-chart-card > div {
+.commodity-chart-canvas {
   height: 270px;
 }
 
@@ -947,7 +947,7 @@ body {
     padding: 16px;
   }
 
-  .commodity-chart-card > div {
+  .commodity-chart-canvas {
     height: 220px;
   }
 }

@@ -1108,21 +1108,21 @@ foreach ($yearOptions as $yearOption) {
                             <h3>Frekuensi (kali)</h3>
                             <button type="button" class="commodity-chart-download" data-download-chart="commodityFrequencyChart" data-download-metric="frekuensi">Unduh PNG</button>
                         </div>
-                        <div><canvas id="commodityFrequencyChart"></canvas></div>
+                        <div class="commodity-chart-canvas"><canvas id="commodityFrequencyChart"></canvas></div>
                     </div>
                     <div class="commodity-chart-card">
                         <div class="commodity-chart-card-header">
                             <h3>Volume (<span id="commodityVolumeUnit">satuan</span>)</h3>
                             <button type="button" class="commodity-chart-download" data-download-chart="commodityVolumeChart" data-download-metric="volume">Unduh PNG</button>
                         </div>
-                        <div><canvas id="commodityVolumeChart"></canvas></div>
+                        <div class="commodity-chart-canvas"><canvas id="commodityVolumeChart"></canvas></div>
                     </div>
                     <div class="commodity-chart-card">
                         <div class="commodity-chart-card-header">
-                            <h3>Nilai Komoditas (Rupiah)</h3>
+                            <h3>Nilai Komoditas (Miliar Rp)</h3>
                             <button type="button" class="commodity-chart-download" data-download-chart="commodityValueChart" data-download-metric="nilai">Unduh PNG</button>
                         </div>
-                        <div><canvas id="commodityValueChart"></canvas></div>
+                        <div class="commodity-chart-canvas"><canvas id="commodityValueChart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -1264,7 +1264,9 @@ foreach ($yearOptions as $yearOption) {
                         const color = index === 0 ? '#dc2626' : '#2563eb';
                         return {
                             label: year,
-                            data: comparison[metric][year],
+                            data: comparison[metric][year].map(function(value) {
+                                return metric === 'value' ? value / 1e9 : value;
+                            }),
                             borderColor: color,
                             backgroundColor: color,
                             tension: 0.25
@@ -1282,7 +1284,10 @@ foreach ($yearOptions as $yearOption) {
                                 callbacks: metric === 'value'
                                     ? {
                                         label: function(context) {
-                                            return context.dataset.label + ': Rp ' + Number(context.raw).toLocaleString('id-ID');
+                                            return context.dataset.label + ': Rp ' + Number(context.raw).toLocaleString('id-ID', {
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 2
+                                            }) + ' Miliar';
                                         }
                                     }
                                     : {}
@@ -1294,7 +1299,7 @@ foreach ($yearOptions as $yearOption) {
                                 ticks: metric === 'value'
                                     ? {
                                         callback: function(value) {
-                                            return 'Rp ' + Number(value).toLocaleString('id-ID');
+                                            return 'Rp ' + Number(value).toLocaleString('id-ID') + ' M';
                                         }
                                     }
                                     : {}
