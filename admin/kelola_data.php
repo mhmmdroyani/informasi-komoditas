@@ -360,6 +360,13 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                  
                 <div style="padding: 14px 18px; background: var(--bg); border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px;">
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <?php if (!empty($dataItems)): ?>
+                            <div class="kelola-data-search">
+                                <label for="kelolaDataSearch">Cari:</label>
+                                <input type="search" id="kelolaDataSearch" class="field-input" placeholder="Cari data..." aria-label="Cari data komoditas" autocomplete="off">
+                                <span id="kelolaDataSearchCount" aria-live="polite"><?= count($dataItems) ?> data</span>
+                            </div>
+                        <?php endif; ?>
                         <div id="periodeAFilterWrap" style="display: flex; align-items: center; gap: 6px;">
                             <label for="periodeAFilter" style="font-weight: 600; color: var(--ink-soft);">Periode A:</label>
                             <input type="month" id="periodeAFilter" class="field-input" value="<?= htmlspecialchars($periodeA) ?>" min="<?= htmlspecialchars($validPeriods[0] ?? '') ?>" max="<?= htmlspecialchars($validPeriods[count($validPeriods) - 1] ?? '') ?>" onchange="updatePeriodRange('a')" style="width: 175px; padding: 7px 10px; font-size: 12px;">
@@ -368,13 +375,6 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                             <label for="periodeBFilter" style="font-weight: 600; color: var(--ink-soft);">Periode B:</label>
                             <input type="month" id="periodeBFilter" class="field-input" value="<?= htmlspecialchars($periodeB) ?>" min="<?= htmlspecialchars($validPeriods[0] ?? '') ?>" max="<?= htmlspecialchars($validPeriods[count($validPeriods) - 1] ?? '') ?>" onchange="updatePeriodRange('b')" style="width: 175px; padding: 7px 10px; font-size: 12px;">
                         </div>
-                        <?php if (!empty($dataItems)): ?>
-                            <div class="kelola-data-search">
-                                <label for="kelolaDataSearch">Cari:</label>
-                                <input type="search" id="kelolaDataSearch" class="field-input" placeholder="Cari data..." aria-label="Cari data komoditas" autocomplete="off">
-                                <span id="kelolaDataSearchCount" aria-live="polite"><?= count($dataItems) ?> data</span>
-                            </div>
-                        <?php endif; ?>
                     </div>
                     <div class="kelola-data-toolbar-right" style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-left: auto;">
                         <?php if ($periodeA !== '' && $periodeB !== ''): ?>

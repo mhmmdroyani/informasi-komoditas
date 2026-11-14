@@ -76,8 +76,10 @@ a {
 
 .kelola-data-search {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  min-width: 180px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .kelola-data-search label {
@@ -1175,7 +1177,7 @@ table.data-table {
   }
 
   .kelola-data-search .field-input {
-    flex: 1;
+    width: 100%;
     min-width: 0;
   }
 
