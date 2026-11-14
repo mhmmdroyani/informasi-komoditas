@@ -76,13 +76,19 @@ a {
 
 .kelola-data-search {
   display: flex;
-  min-width: min(250px, 100%);
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+}
+
+.kelola-data-search label {
+  color: var(--ink-soft);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .kelola-data-search .field-input {
-  min-width: 190px;
+  width: 180px;
+  min-width: 0;
   padding: 7px 10px;
   font-size: 12px;
 }

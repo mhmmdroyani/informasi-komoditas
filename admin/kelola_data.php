@@ -368,14 +368,15 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                             <label for="periodeBFilter" style="font-weight: 600; color: var(--ink-soft);">Periode B:</label>
                             <input type="month" id="periodeBFilter" class="field-input" value="<?= htmlspecialchars($periodeB) ?>" min="<?= htmlspecialchars($validPeriods[0] ?? '') ?>" max="<?= htmlspecialchars($validPeriods[count($validPeriods) - 1] ?? '') ?>" onchange="updatePeriodRange('b')" style="width: 175px; padding: 7px 10px; font-size: 12px;">
                         </div>
-                    </div>
-                    <div class="kelola-data-toolbar-right" style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-left: auto;">
                         <?php if (!empty($dataItems)): ?>
                             <div class="kelola-data-search">
-                                <input type="search" id="kelolaDataSearch" class="field-input" placeholder="Cari komoditas, daerah, status..." aria-label="Cari data komoditas" autocomplete="off">
+                                <label for="kelolaDataSearch">Cari:</label>
+                                <input type="search" id="kelolaDataSearch" class="field-input" placeholder="Cari data..." aria-label="Cari data komoditas" autocomplete="off">
                                 <span id="kelolaDataSearchCount" aria-live="polite"><?= count($dataItems) ?> data</span>
                             </div>
                         <?php endif; ?>
+                    </div>
+                    <div class="kelola-data-toolbar-right" style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-left: auto;">
                         <?php if ($periodeA !== '' && $periodeB !== ''): ?>
                             <a href="export_kelola_data.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori, 'periode_a' => $periodeA, 'periode_b' => $periodeB]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-brand btn-sm">
                                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"></path></svg>
