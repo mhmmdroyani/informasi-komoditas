@@ -715,26 +715,30 @@ foreach ($yearOptions as $yearOption) {
                     ['title' => 'Nilai Komoditas', 'class' => 'value', 'icon' => '<path d="M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2H4v2h1v11a3 3 0 003 3h8a3 3 0 003-3V8h1V6h-4zm-6-2h4v2h-4V4zm7 15a1 1 0 01-1 1H8a1 1 0 01-1-1V8h10v11z"/><path d="M9 10h2v2H9v1h2v1H9v1h3v-1h-1v-1h1a1 1 0 001-1v-1a1 1 0 00-1-1H9z"/>', 'values' => []],
                     ['title' => 'Volume (Netto)', 'class' => 'volume', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>', 'values' => []],
                     ['title' => 'Frekuensi Sertifikasi', 'class' => 'frequency', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>', 'values' => []],
-                    ['title' => $labelArahUpper, 'class' => 'destination', 'icon' => '<circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>', 'values' => []],
                 ];
                 foreach ($commodityComparisonYears as $year) {
-                    $valueKpi = format_kpi_nilai(array_sum($selectedCommodityChart['value'][$year]));
+                    $yearlyCommodityValue = array_sum($selectedCommodityChart['value'][$year]);
+                    $valueKpi = $yearlyCommodityValue == 0.0
+                        ? ['angka' => 'Rp 0', 'satuan' => '']
+                        : format_kpi_nilai($yearlyCommodityValue);
                     $volumeTotal = array_sum($selectedCommodityChart['volume'][$year]);
                     $commodityMetricCards[0]['values'][$year] = [
                         'value' => $valueKpi['angka'],
                         'unit' => $valueKpi['satuan'],
                     ];
-                    $commodityMetricCards[1]['values'][$year] = [
-                        'value' => format_angka($volumeTotal, floor($volumeTotal) === $volumeTotal ? 0 : 2),
-                        'unit' => $selectedCommodityChart['unit'],
-                    ];
+                    $volumeDisplay = $selectedCommodityChart['unit'] === 'Kilogram'
+                        ? [
+                            'value' => format_angka($volumeTotal / 1000, floor($volumeTotal / 1000) === $volumeTotal / 1000 ? 0 : 2),
+                            'unit' => 'Ton',
+                        ]
+                        : [
+                            'value' => format_angka($volumeTotal, floor($volumeTotal) === $volumeTotal ? 0 : 2),
+                            'unit' => $selectedCommodityChart['unit'],
+                        ];
+                    $commodityMetricCards[1]['values'][$year] = $volumeDisplay;
                     $commodityMetricCards[2]['values'][$year] = [
                         'value' => format_angka(array_sum($selectedCommodityChart['frequency'][$year])),
                         'unit' => 'kali',
-                    ];
-                    $commodityMetricCards[3]['values'][$year] = [
-                        'value' => format_angka($selectedCommodityChart['destinations'][$year] ?? 0),
-                        'unit' => $isDomestik ? 'daerah' : 'negara',
                     ];
                 }
                 ?>
@@ -758,7 +762,7 @@ foreach ($yearOptions as $yearOption) {
                         ?>
                         <article class="kpi-card-canva commodity-summary-card">
                             <span class="kpi-icon-circle <?= $kpiColor ?>" aria-hidden="true">
-                                <svg width="70" height="70" viewBox="0 0 24 24" fill="<?= $metricCard['class'] === 'value' ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><?= $metricCard['icon'] ?></svg>
+                                <svg width="70" height="70" viewBox="0 0 24 24" fill="<?= $metricCard['class'] === 'value' ? 'currentColor' : 'none' ?>" <?= $metricCard['class'] === 'value' ? '' : 'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"' ?>><?= $metricCard['icon'] ?></svg>
                             </span>
                             <div class="kpi-content-canva commodity-summary-content">
                                 <h2 class="kpi-title-canva"><?= htmlspecialchars($metricCard['title'], ENT_QUOTES, 'UTF-8') ?></h2>
@@ -767,7 +771,9 @@ foreach ($yearOptions as $yearOption) {
                                         <div class="commodity-summary-year">
                                             <span class="commodity-summary-year-label commodity-summary-year-label--<?= $year === $commodityComparisonYears[0] ? 'previous' : 'latest' ?>"><?= htmlspecialchars($year, ENT_QUOTES, 'UTF-8') ?></span>
                                             <strong class="kpi-number-canva <?= $kpiColor ?>"><?= htmlspecialchars($metricCard['values'][$year]['value'], ENT_QUOTES, 'UTF-8') ?></strong>
-                                            <span class="kpi-unit-canva <?= $kpiColor ?> commodity-summary-unit"><?= htmlspecialchars($metricCard['values'][$year]['unit'], ENT_QUOTES, 'UTF-8') ?></span>
+                                            <?php if ($metricCard['values'][$year]['unit'] !== ''): ?>
+                                                <span class="kpi-unit-canva <?= $kpiColor ?> commodity-summary-unit"><?= htmlspecialchars($metricCard['values'][$year]['unit'], ENT_QUOTES, 'UTF-8') ?></span>
+                                            <?php endif; ?>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
