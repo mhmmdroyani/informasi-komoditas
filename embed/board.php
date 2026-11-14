@@ -630,6 +630,12 @@ function formatVolumeOtomatis($volume, $satuan) {
             }
             window.location.href = url;
         };
+        window.navigateCommodityYearFilter = function(control) {
+            const form = control.form;
+            if (!form) return;
+            const params = new URLSearchParams(new FormData(form));
+            window.navigateBoardFilter(form.action + '?' + params.toString());
+        };
         window.addEventListener('pageshow', () => {
             try {
                 const saved = JSON.parse(sessionStorage.getItem(key) || 'null');
@@ -745,7 +751,7 @@ foreach ($yearOptions as $yearOption) {
                     <input type="hidden" name="periode_b" value="<?= htmlspecialchars($periodeB, ENT_QUOTES, 'UTF-8') ?>">
                     <label class="hero-select-field">
                         <span class="hero-filter-label">Tahun Awal</span>
-                        <select name="grafik_tahun_a" aria-label="Pilih tahun awal grafik komoditas">
+                        <select name="grafik_tahun_a" aria-label="Pilih tahun awal grafik komoditas" onchange="navigateCommodityYearFilter(this)">
                             <?php foreach ($commodityComparisonYearOptions as $yearOption): ?>
                                 <option value="<?= htmlspecialchars($yearOption, ENT_QUOTES, 'UTF-8') ?>" <?= $commodityComparisonYears[0] === $yearOption ? 'selected' : '' ?>><?= htmlspecialchars($yearOption, ENT_QUOTES, 'UTF-8') ?></option>
                             <?php endforeach; ?>
@@ -753,13 +759,12 @@ foreach ($yearOptions as $yearOption) {
                     </label>
                     <label class="hero-select-field">
                         <span class="hero-filter-label">Tahun Akhir</span>
-                        <select name="grafik_tahun_b" aria-label="Pilih tahun akhir grafik komoditas">
+                        <select name="grafik_tahun_b" aria-label="Pilih tahun akhir grafik komoditas" onchange="navigateCommodityYearFilter(this)">
                             <?php foreach ($commodityComparisonYearOptions as $yearOption): ?>
                                 <option value="<?= htmlspecialchars($yearOption, ENT_QUOTES, 'UTF-8') ?>" <?= $commodityComparisonYears[1] === $yearOption ? 'selected' : '' ?>><?= htmlspecialchars($yearOption, ENT_QUOTES, 'UTF-8') ?></option>
                             <?php endforeach; ?>
                         </select>
                     </label>
-                    <button class="board-compare-btn" type="submit">Terapkan</button>
                 </form>
                 <button class="board-download-btn" type="button" onclick="openPrintBoard()">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg>

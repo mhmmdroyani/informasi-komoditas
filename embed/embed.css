@@ -1379,6 +1379,40 @@ body {
   }
 }
 
+.commodity-year-controls {
+  width: min(100%, 520px);
+  max-width: 520px;
+  padding: 10px 12px;
+  gap: 10px;
+}
+
+.commodity-year-controls .hero-select-field {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.commodity-year-controls .hero-select-field select {
+  min-height: 36px;
+  padding: 6px 30px 6px 10px;
+}
+
+@media (max-width: 900px) {
+  .commodity-year-controls {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+}
+
+@media (max-width: 700px) {
+  .commodity-year-controls {
+    width: 100%;
+  }
+
+  .commodity-year-controls .hero-select-field {
+    width: auto;
+  }
+}
+
 @media print {
   @page {
     size: A4 landscape;
