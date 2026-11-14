@@ -845,21 +845,21 @@ foreach ($yearOptions as $yearOption) {
                     <div class="commodity-chart-card">
                         <div class="commodity-chart-card-header">
                             <h2>Frekuensi (kali)</h2>
-                            <button type="button" class="commodity-chart-download" data-download-chart="commodityFrequencyChart" data-download-metric="frekuensi">Unduh PNG</button>
+                            <button type="button" class="commodity-chart-download" data-download-chart="commodityFrequencyChart" data-download-metric="frekuensi" data-download-title="Frekuensi Sertifikasi (kali)">Unduh PNG</button>
                         </div>
                         <div class="commodity-chart-canvas"><canvas id="commodityFrequencyChart"></canvas></div>
                     </div>
                     <div class="commodity-chart-card">
                         <div class="commodity-chart-card-header">
                             <h2>Volume (<?= htmlspecialchars($selectedCommodityChart['unit'], ENT_QUOTES, 'UTF-8') ?>)</h2>
-                            <button type="button" class="commodity-chart-download" data-download-chart="commodityVolumeChart" data-download-metric="volume">Unduh PNG</button>
+                            <button type="button" class="commodity-chart-download" data-download-chart="commodityVolumeChart" data-download-metric="volume" data-download-title="Volume (<?= htmlspecialchars($selectedCommodityChart['unit'], ENT_QUOTES, 'UTF-8') ?>)">Unduh PNG</button>
                         </div>
                         <div class="commodity-chart-canvas"><canvas id="commodityVolumeChart"></canvas></div>
                     </div>
                     <div class="commodity-chart-card">
                         <div class="commodity-chart-card-header">
                             <h2>Nilai Komoditas (Miliar Rp)</h2>
-                            <button type="button" class="commodity-chart-download" data-download-chart="commodityValueChart" data-download-metric="nilai">Unduh PNG</button>
+                            <button type="button" class="commodity-chart-download" data-download-chart="commodityValueChart" data-download-metric="nilai" data-download-title="Nilai Komoditas (Miliar Rp)">Unduh PNG</button>
                         </div>
                         <div class="commodity-chart-canvas"><canvas id="commodityValueChart"></canvas></div>
                     </div>
@@ -930,12 +930,36 @@ foreach ($yearOptions as $yearOption) {
                     button.addEventListener('click', function() {
                         const canvas = document.getElementById(this.dataset.downloadChart);
                         const metric = this.dataset.downloadMetric;
+                        const exportCanvas = document.createElement('canvas');
+                        const scale = canvas.width / Math.max(canvas.clientWidth, 1);
+                        const headerHeight = Math.round(68 * scale);
+                        exportCanvas.width = canvas.width;
+                        exportCanvas.height = canvas.height + headerHeight;
+                        const context = exportCanvas.getContext('2d');
+                        if (!context) {
+                            console.error('Kanvas ekspor grafik tidak dapat dibuat.');
+                            return;
+                        }
+                        context.fillStyle = '#ffffff';
+                        context.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+                        context.fillStyle = '#17365d';
+                        context.font = '700 ' + Math.round(18 * scale) + 'px Arial, sans-serif';
+                        context.textBaseline = 'top';
+                        context.fillText(this.dataset.downloadTitle, 20 * scale, 12 * scale);
+                        context.fillStyle = '#52606d';
+                        context.font = '400 ' + Math.round(13 * scale) + 'px Arial, sans-serif';
+                        context.fillText(
+                            commodityChartName + ' | ' + <?= json_encode($labelKegiatan, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?> + ' | ' + commodityComparisonYears.join(' – '),
+                            20 * scale,
+                            39 * scale
+                        );
+                        context.drawImage(canvas, 0, headerHeight);
                         const safeName = commodityChartName.normalize('NFKD')
                             .replace(/[\u0300-\u036f]/g, '')
                             .replace(/[^a-zA-Z0-9]+/g, '-')
                             .replace(/^-|-$/g, '')
                             .toLowerCase();
-                        canvas.toBlob(function(blob) {
+                        exportCanvas.toBlob(function(blob) {
                             if (!blob) {
                                 console.error('Grafik gagal dikonversi menjadi PNG.');
                                 return;
