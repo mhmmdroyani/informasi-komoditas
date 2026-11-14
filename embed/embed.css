@@ -1511,6 +1511,7 @@ body {
   .kpi-row-canva {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: stretch;
+    padding-inline: 1mm;
     gap: 2.5mm;
     margin: 0 0 3mm;
   }
