@@ -177,12 +177,12 @@ a {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 11px;
+  gap: 12px;
   width: 100%;
-  padding: 11px 12px;
+  padding: 12px;
   border-radius: var(--radius-sm);
   font: inherit;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
@@ -194,16 +194,16 @@ a {
 }
 
 .admin-nav-icon {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
 }
 
 .admin-nav-label {
   display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
 }
 
 .admin-nav-dropdown-toggle {
@@ -211,7 +211,9 @@ a {
 }
 
 .admin-nav-dropdown-toggle > svg:last-child {
-  flex: 0 0 15px;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
 }
 
 .admin-nav-link:hover {
@@ -252,12 +254,18 @@ a {
 .admin-nav-dropdown-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
+  gap: 11px;
+  padding: 10px 11px;
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
+}
+
+.admin-nav-dropdown-item .admin-nav-icon {
+  width: 19px;
+  height: 19px;
+  flex-basis: 19px;
 }
 
 .admin-nav-dropdown-item:hover,
@@ -290,7 +298,7 @@ a {
   align-items: center;
   gap: 8px;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: #fca5a5;
   background: rgba(185, 28, 28, 0.15);

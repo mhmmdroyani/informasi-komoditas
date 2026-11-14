@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <?php require 'navbar.php'; ?>
 
-    <div class="admin-main" style="max-width: 860px;">
+    <div class="admin-main">
 
         <!-- Header -->
         <div class="page-header">

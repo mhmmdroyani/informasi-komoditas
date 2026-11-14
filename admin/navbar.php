@@ -54,7 +54,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             </div>
             <a href="kelola_data.php" class="admin-nav-link <?= $currentPage === 'kelola_data.php' ? 'active' : '' ?>">
                 <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h11a2 2 0 012 2v13a2 2 0 01-2 2H8a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M6 8H4a2 2 0 00-2 2v10a2 2 0 002 2h13M10 9h7m-7 4h7m-7 4h4"/></svg>
-                <span>Kelola & Publish Data</span>
+                <span>Kelola Data</span>
             </a>
             <?php if (is_admin_role()): ?>
                 <a href="users.php" class="admin-nav-link <?= $currentPage === 'users.php' ? 'active' : '' ?>">
