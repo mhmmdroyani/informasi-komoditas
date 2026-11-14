@@ -234,7 +234,7 @@ $allMonthlyData = $stmtData->fetchAll();
 $commodityComparisonData = [];
 if (!$comparisonPage) {
     $itemComparisonStmt = $pdo->prepare(
-        "SELECT periode, nama_komoditas, volume, satuan, frekuensi
+        "SELECT periode, nama_komoditas, volume, satuan, frekuensi, nilai_ekspor
          FROM ekspor_komoditas
          WHERE jenis_kegiatan = ? AND kategori = ? AND is_published = 1
              AND periode >= '2025-01' AND periode <= '2026-12'
@@ -262,10 +262,12 @@ if (!$comparisonPage) {
                 'unit' => $normalizedVolume['unit'],
                 'frequency' => ['2025' => array_fill(0, 12, 0), '2026' => array_fill(0, 12, 0)],
                 'volume' => ['2025' => array_fill(0, 12, 0.0), '2026' => array_fill(0, 12, 0.0)],
+                'value' => ['2025' => array_fill(0, 12, 0.0), '2026' => array_fill(0, 12, 0.0)],
             ];
         }
         $commodityComparisonData[$selectionKey]['frequency'][$year][$month] += (int)($comparisonRow['frekuensi'] ?? 0);
         $commodityComparisonData[$selectionKey]['volume'][$year][$month] += $normalizedVolume['volume'];
+        $commodityComparisonData[$selectionKey]['value'][$year][$month] += (float)($comparisonRow['nilai_ekspor'] ?? 0);
     }
 }
 
@@ -485,6 +487,7 @@ foreach ($data as $idx => $row) {
             'unit' => $row['satuan'] ?? 'Tidak diketahui',
             'frequency' => ['2025' => array_fill(0, 12, 0), '2026' => array_fill(0, 12, 0)],
             'volume' => ['2025' => array_fill(0, 12, 0.0), '2026' => array_fill(0, 12, 0.0)],
+            'value' => ['2025' => array_fill(0, 12, 0.0), '2026' => array_fill(0, 12, 0.0)],
         ];
     }
 }
@@ -784,7 +787,9 @@ foreach ($yearOptions as $yearOption) {
             const comparisonLabels = <?= json_encode(array_map('nama_bulan_indo', range(1, 12))) ?>;
             const comparisonYears = <?= json_encode($comparisonYears) ?>;
             const comparisonYearData = <?= json_encode(array_intersect_key($comparisonMonthly, array_flip($comparisonYears))) ?>;
-            const comparisonColors = ['#2563eb', '#0f766e', '#d97706', '#7c3aed', '#db2777', '#0891b2'];
+            const comparisonColors = ['#dc2626', '#d97706', '#7c3aed', '#db2777', '#0891b2'];
+            const latestComparisonYear = comparisonYears[comparisonYears.length - 1];
+            const previousComparisonYear = comparisonYears[comparisonYears.length - 2];
             const comparisonCharts = [
                 ['comparisonChartNilai', 'nilai', 1000000000],
                 ['comparisonChartVolume', 'volume', 1],
@@ -797,7 +802,11 @@ foreach ($yearOptions as $yearOption) {
                     data: {
                         labels: comparisonLabels,
                         datasets: comparisonYears.map(function(year, index) {
-                            const color = comparisonColors[index % comparisonColors.length];
+                            const color = year === latestComparisonYear
+                                ? '#2563eb'
+                                : (year === previousComparisonYear
+                                    ? '#dc2626'
+                                    : comparisonColors[index % comparisonColors.length]);
                             const values = comparisonYearData[year][chartItem[1]] || {};
                             return {
                                 label: year,
@@ -1095,12 +1104,25 @@ foreach ($yearOptions as $yearOption) {
                 </header>
                 <div class="commodity-chart-grid">
                     <div class="commodity-chart-card">
-                        <h3>Frekuensi (kali)</h3>
+                        <div class="commodity-chart-card-header">
+                            <h3>Frekuensi (kali)</h3>
+                            <button type="button" class="commodity-chart-download" data-download-chart="commodityFrequencyChart" data-download-metric="frekuensi">Unduh PNG</button>
+                        </div>
                         <div><canvas id="commodityFrequencyChart"></canvas></div>
                     </div>
                     <div class="commodity-chart-card">
-                        <h3>Volume (<span id="commodityVolumeUnit">satuan</span>)</h3>
+                        <div class="commodity-chart-card-header">
+                            <h3>Volume (<span id="commodityVolumeUnit">satuan</span>)</h3>
+                            <button type="button" class="commodity-chart-download" data-download-chart="commodityVolumeChart" data-download-metric="volume">Unduh PNG</button>
+                        </div>
                         <div><canvas id="commodityVolumeChart"></canvas></div>
+                    </div>
+                    <div class="commodity-chart-card">
+                        <div class="commodity-chart-card-header">
+                            <h3>Nilai Komoditas (Rupiah)</h3>
+                            <button type="button" class="commodity-chart-download" data-download-chart="commodityValueChart" data-download-metric="nilai">Unduh PNG</button>
+                        </div>
+                        <div><canvas id="commodityValueChart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -1239,7 +1261,7 @@ foreach ($yearOptions as $yearOption) {
                 const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
                 const datasetsFor = function(metric) {
                     return ['2025', '2026'].map(function(year, index) {
-                        const color = index === 0 ? '#2563eb' : '#0f766e';
+                        const color = index === 0 ? '#dc2626' : '#2563eb';
                         return {
                             label: year,
                             data: comparison[metric][year],
@@ -1249,24 +1271,73 @@ foreach ($yearOptions as $yearOption) {
                         };
                     });
                 };
-                const options = {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { intersect: false, mode: 'index' },
-                    plugins: { legend: { position: 'bottom' } },
-                    scales: { y: { beginAtZero: true } }
+                const optionsFor = function(metric) {
+                    return {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { intersect: false, mode: 'index' },
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: metric === 'value'
+                                    ? {
+                                        label: function(context) {
+                                            return context.dataset.label + ': Rp ' + Number(context.raw).toLocaleString('id-ID');
+                                        }
+                                    }
+                                    : {}
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: metric === 'value'
+                                    ? {
+                                        callback: function(value) {
+                                            return 'Rp ' + Number(value).toLocaleString('id-ID');
+                                        }
+                                    }
+                                    : {}
+                            }
+                        }
+                    };
                 };
-                commodityCharts.push(new Chart(document.getElementById('commodityFrequencyChart'), {
-                    type: 'line',
-                    data: { labels: monthLabels, datasets: datasetsFor('frequency') },
-                    options: options
-                }));
-                commodityCharts.push(new Chart(document.getElementById('commodityVolumeChart'), {
-                    type: 'line',
-                    data: { labels: monthLabels, datasets: datasetsFor('volume') },
-                    options: options
-                }));
+                [
+                    ['commodityFrequencyChart', 'frequency'],
+                    ['commodityVolumeChart', 'volume'],
+                    ['commodityValueChart', 'value']
+                ].forEach(function(chartConfig) {
+                    commodityCharts.push(new Chart(document.getElementById(chartConfig[0]), {
+                        type: 'line',
+                        data: { labels: monthLabels, datasets: datasetsFor(chartConfig[1]) },
+                        options: optionsFor(chartConfig[1])
+                    }));
+                });
                 commodityChartClose.focus();
+            });
+        });
+        document.querySelectorAll('.commodity-chart-download').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const canvas = document.getElementById(this.dataset.downloadChart);
+                const chartName = document.getElementById('commodityChartTitle').textContent
+                    .normalize('NFKD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-zA-Z0-9]+/g, '-')
+                    .replace(/^-|-$/g, '')
+                    .toLowerCase();
+                const metric = this.dataset.downloadMetric;
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        console.error('Grafik gagal dikonversi menjadi PNG.');
+                        return;
+                    }
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = chartName + '-' + metric + '-2025-2026.png';
+                    link.click();
+                    window.setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+                }, 'image/png');
             });
         });
         commodityChartClose.addEventListener('click', closeCommodityChart);
