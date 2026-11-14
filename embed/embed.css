@@ -1791,8 +1791,8 @@ body {
   .commodity-chart-page {
     display: block;
     padding: 0;
-    break-inside: avoid-page;
-    page-break-inside: avoid;
+    break-inside: auto;
+    page-break-inside: auto;
   }
 
   .commodity-chart-hero {
@@ -1816,6 +1816,7 @@ body {
 
   .commodity-summary-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-inline: 1mm;
     gap: 2mm;
     margin: 0 0 2mm;
     break-inside: avoid-page;
@@ -1823,31 +1824,31 @@ body {
   }
 
   .commodity-summary-card {
-    min-height: 29mm;
-    padding: 2mm;
-    gap: 2mm;
+    min-height: 34mm;
+    padding: 2.5mm;
+    gap: 2.5mm;
   }
 
   .commodity-summary-card .kpi-icon-circle svg {
-    width: 10mm;
-    height: 10mm;
+    width: 14mm;
+    height: 14mm;
   }
 
   .commodity-summary-card .kpi-title-canva {
-    margin-bottom: 0.5mm;
-    font-size: 7pt;
+    margin-bottom: 0.8mm;
+    font-size: 8.5pt;
   }
 
   .commodity-summary-year-label {
-    font-size: 7pt;
+    font-size: 8pt;
   }
 
   .commodity-summary-year strong {
-    font-size: 12pt;
+    font-size: 16pt;
   }
 
   .commodity-summary-unit {
-    font-size: 7pt;
+    font-size: 8pt;
   }
 
   .commodity-chart-grid {
@@ -1882,7 +1883,7 @@ body {
   }
 
   .commodity-chart-canvas {
-    height: 96mm;
+    height: 65mm;
   }
 
   .commodity-chart-canvas canvas {
