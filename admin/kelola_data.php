@@ -370,6 +370,12 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                         </div>
                     </div>
                     <div class="kelola-data-toolbar-right" style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-left: auto;">
+                        <?php if (!empty($dataItems)): ?>
+                            <div class="kelola-data-search">
+                                <input type="search" id="kelolaDataSearch" class="field-input" placeholder="Cari komoditas, daerah, status..." aria-label="Cari data komoditas" autocomplete="off">
+                                <span id="kelolaDataSearchCount" aria-live="polite"><?= count($dataItems) ?> data</span>
+                            </div>
+                        <?php endif; ?>
                         <?php if ($periodeA !== '' && $periodeB !== ''): ?>
                             <a href="export_kelola_data.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori, 'periode_a' => $periodeA, 'periode_b' => $periodeB]), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-brand btn-sm">
                                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"></path></svg>
@@ -426,7 +432,7 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($dataItems as $idx => $row): ?>
-                                    <tr class="<?= $row['is_published'] ? 'is-published' : '' ?>">
+                                    <tr class="kelola-data-search-row <?= $row['is_published'] ? 'is-published' : '' ?>">
                                         <td style="text-align: center;">
                                             <?php if (!$aggregateMode): ?>
                                                 <?php foreach ($row['_source_ids'] as $sourceId): ?>
@@ -497,6 +503,9 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
+                                <tr id="kelolaDataNoSearchResults" hidden>
+                                    <td colspan="13" class="kelola-data-no-results">Data yang cocok tidak ditemukan.</td>
+                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -557,6 +566,25 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
     const kelolaDataToolbar = document.querySelector('.kelola-data-toolbar-right');
     if (kelolaDataActions && kelolaDataToolbar) {
         kelolaDataToolbar.insertBefore(kelolaDataActions, kelolaDataToolbar.firstChild);
+    }
+
+    const kelolaDataSearch = document.getElementById('kelolaDataSearch');
+    if (kelolaDataSearch) {
+        const searchRows = Array.from(document.querySelectorAll('.kelola-data-search-row'));
+        const noSearchResults = document.getElementById('kelolaDataNoSearchResults');
+        const searchCount = document.getElementById('kelolaDataSearchCount');
+        const updateSearchResults = function() {
+            const query = kelolaDataSearch.value.trim().toLocaleLowerCase('id-ID');
+            let visibleCount = 0;
+            searchRows.forEach(function(row) {
+                const matches = row.textContent.toLocaleLowerCase('id-ID').includes(query);
+                row.hidden = !matches;
+                if (matches) visibleCount++;
+            });
+            if (noSearchResults) noSearchResults.hidden = visibleCount > 0;
+            if (searchCount) searchCount.textContent = 'Menampilkan ' + visibleCount + ' dari ' + searchRows.length + ' data';
+        };
+        kelolaDataSearch.addEventListener('input', updateSearchResults);
     }
 
     </script>
