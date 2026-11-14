@@ -819,7 +819,7 @@ foreach ($yearOptions as $yearOption) {
                             default => 'orange',
                         };
                         ?>
-                        <article class="kpi-card-canva commodity-summary-card">
+                        <article class="kpi-card-canva commodity-summary-card commodity-summary-card--<?= htmlspecialchars($metricCard['class'], ENT_QUOTES, 'UTF-8') ?>">
                             <span class="kpi-icon-circle <?= $kpiColor ?>" aria-hidden="true">
                                 <svg width="70" height="70" viewBox="0 0 24 24" fill="<?= $metricCard['class'] === 'value' ? 'currentColor' : 'none' ?>" <?= $metricCard['class'] === 'value' ? '' : 'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"' ?>><?= $metricCard['icon'] ?></svg>
                             </span>

@@ -757,6 +757,18 @@ body {
   min-height: 150px;
 }
 
+.commodity-summary-card--frequency {
+  order: 1;
+}
+
+.commodity-summary-card--volume {
+  order: 2;
+}
+
+.commodity-summary-card--value {
+  order: 3;
+}
+
 .commodity-summary-card .kpi-icon-circle svg {
   width: 70px;
   height: 70px;
