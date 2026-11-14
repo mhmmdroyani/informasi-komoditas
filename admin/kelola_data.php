@@ -364,7 +364,6 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                             <div class="kelola-data-search">
                                 <label for="kelolaDataSearch">Cari:</label>
                                 <input type="search" id="kelolaDataSearch" class="field-input" placeholder="Cari data..." aria-label="Cari data komoditas" autocomplete="off">
-                                <span id="kelolaDataSearchCount" aria-live="polite"><?= count($dataItems) ?> data</span>
                             </div>
                         <?php endif; ?>
                         <div id="periodeAFilterWrap" style="display: flex; align-items: center; gap: 6px;">
@@ -573,7 +572,6 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
     if (kelolaDataSearch) {
         const searchRows = Array.from(document.querySelectorAll('.kelola-data-search-row'));
         const noSearchResults = document.getElementById('kelolaDataNoSearchResults');
-        const searchCount = document.getElementById('kelolaDataSearchCount');
         const updateSearchResults = function() {
             const query = kelolaDataSearch.value.trim().toLocaleLowerCase('id-ID');
             let visibleCount = 0;
@@ -583,7 +581,6 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                 if (matches) visibleCount++;
             });
             if (noSearchResults) noSearchResults.hidden = visibleCount > 0;
-            if (searchCount) searchCount.textContent = 'Menampilkan ' + visibleCount + ' dari ' + searchRows.length + ' data';
         };
         kelolaDataSearch.addEventListener('input', updateSearchResults);
     }

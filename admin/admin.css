@@ -76,10 +76,9 @@ a {
 
 .kelola-data-search {
   display: flex;
-  min-width: 180px;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
 }
 
 .kelola-data-search label {
@@ -93,12 +92,6 @@ a {
   min-width: 0;
   padding: 7px 10px;
   font-size: 12px;
-}
-
-.kelola-data-search span {
-  color: var(--ink-muted);
-  font-size: 11px;
-  white-space: nowrap;
 }
 
 .kelola-data-no-results {
@@ -1177,7 +1170,8 @@ table.data-table {
   }
 
   .kelola-data-search .field-input {
-    width: 100%;
+    flex: 1;
+    width: auto;
     min-width: 0;
   }
 
