@@ -121,6 +121,13 @@ $nihilEndPeriodStmt->execute([$jenis, $kategori, $rentangPeriodeAkhir]);
 $endPeriodIsNihil = (bool)$nihilEndPeriodStmt->fetchColumn();
 $yearOptions = published_comparison_years($publishedPeriods);
 $currentYear = (int)(new DateTimeImmutable('now', new DateTimeZone('Asia/Makassar')))->format('Y');
+$defaultComparisonYearA = (string)($currentYear - 1);
+$defaultComparisonYearB = (string)$currentYear;
+$comparisonYearOptions = array_values(array_unique(array_merge(
+    $yearOptions,
+    [$defaultComparisonYearA, $defaultComparisonYearB]
+)));
+sort($comparisonYearOptions, SORT_STRING);
 $commodityComparisonYearOptions = array_values(array_unique(array_merge($yearOptions, [(string)$currentYear])));
 sort($commodityComparisonYearOptions, SORT_STRING);
 $latestCommodityYear = max(
@@ -149,13 +156,13 @@ if (
 }
 $commodityComparisonStart = $commodityComparisonYears[0];
 $commodityComparisonEnd = $commodityComparisonYears[1];
-$comparisonYearA = trim($_GET['tahun_a'] ?? substr($periodeA, 0, 4));
-$comparisonYearB = trim($_GET['tahun_b'] ?? substr($periodeB, 0, 4));
-if (!in_array($comparisonYearA, $yearOptions, true)) {
-    $comparisonYearA = $yearOptions[0] ?? '';
+$comparisonYearA = trim($_GET['tahun_a'] ?? '');
+$comparisonYearB = trim($_GET['tahun_b'] ?? '');
+if (!in_array($comparisonYearA, $comparisonYearOptions, true)) {
+    $comparisonYearA = $defaultComparisonYearA;
 }
-if (!in_array($comparisonYearB, $yearOptions, true)) {
-    $comparisonYearB = $yearOptions[count($yearOptions) - 1] ?? '';
+if (!in_array($comparisonYearB, $comparisonYearOptions, true)) {
+    $comparisonYearB = $defaultComparisonYearB;
 }
 $comparisonYearStart = $comparisonYearA !== '' && $comparisonYearB !== ''
     ? min($comparisonYearA, $comparisonYearB)
@@ -690,13 +697,13 @@ foreach (['nilai_ekspor', 'frekuensi'] as $sortOption) {
     $sortFilterUrls[$sortOption] = '?' . http_build_query($params);
 }
 $comparisonYearAUrls = [];
-foreach ($yearOptions as $yearOption) {
+foreach ($comparisonYearOptions as $yearOption) {
     $params = $comparisonFilterParams;
     $params['tahun_a'] = $yearOption;
     $comparisonYearAUrls[$yearOption] = '?' . http_build_query($params);
 }
 $comparisonYearBUrls = [];
-foreach ($yearOptions as $yearOption) {
+foreach ($comparisonYearOptions as $yearOption) {
     $params = $comparisonFilterParams;
     $params['tahun_b'] = $yearOption;
     $comparisonYearBUrls[$yearOption] = '?' . http_build_query($params);
@@ -1025,25 +1032,19 @@ foreach ($yearOptions as $yearOption) {
             <?php if ($comparisonPage): ?>
                 <label class="hero-select-field">
                     <span class="hero-filter-label">Tahun Awal</span>
-                    <select name="tahun_a" aria-label="Pilih tahun awal grafik" onchange="navigateBoardFilter(this.value)" <?= empty($yearOptions) ? 'disabled' : '' ?>>
-                        <?php foreach ($yearOptions as $yearOption): ?>
+                    <select name="tahun_a" aria-label="Pilih tahun awal grafik" onchange="navigateBoardFilter(this.value)">
+                        <?php foreach ($comparisonYearOptions as $yearOption): ?>
                             <option value="<?= htmlspecialchars($comparisonYearAUrls[$yearOption], ENT_QUOTES, 'UTF-8') ?>" <?= $comparisonYearA === $yearOption ? 'selected' : '' ?>><?= htmlspecialchars($yearOption) ?></option>
                         <?php endforeach; ?>
-                        <?php if (empty($yearOptions)): ?>
-                            <option value="">Belum ada data tahunan</option>
-                        <?php endif; ?>
                     </select>
                 </label>
 
                 <label class="hero-select-field">
                     <span class="hero-filter-label">Tahun Akhir</span>
-                    <select name="tahun_b" aria-label="Pilih tahun akhir grafik" onchange="navigateBoardFilter(this.value)" <?= empty($yearOptions) ? 'disabled' : '' ?>>
-                        <?php foreach ($yearOptions as $yearOption): ?>
+                    <select name="tahun_b" aria-label="Pilih tahun akhir grafik" onchange="navigateBoardFilter(this.value)">
+                        <?php foreach ($comparisonYearOptions as $yearOption): ?>
                             <option value="<?= htmlspecialchars($comparisonYearBUrls[$yearOption], ENT_QUOTES, 'UTF-8') ?>" <?= $comparisonYearB === $yearOption ? 'selected' : '' ?>><?= htmlspecialchars($yearOption) ?></option>
                         <?php endforeach; ?>
-                        <?php if (empty($yearOptions)): ?>
-                            <option value="">Belum ada data tahunan</option>
-                        <?php endif; ?>
                     </select>
                 </label>
             <?php else: ?>
