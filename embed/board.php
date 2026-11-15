@@ -90,6 +90,8 @@ $periodeA = $requestedPeriodeA;
 $defaultPeriodeB = (new DateTimeImmutable('first day of this month'))
     ->modify('-1 month')
     ->format('Y-m');
+$defaultPeriodeA = (new DateTimeImmutable('first day of this year'))
+    ->format('Y-m');
 if (!in_array($defaultPeriodeB, $periodeOptions, true)) {
     $availablePreviousPeriods = array_values(array_filter(
         $periodeOptions,
@@ -102,8 +104,11 @@ if (!in_array($defaultPeriodeB, $periodeOptions, true)) {
         : ($periodeOptions[count($periodeOptions) - 1] ?? '');
 }
 $periodeB = $requestedPeriodeB;
-if (!$isValidPeriod($periodeA)) $periodeA = $periodeOptions[0] ?? '';
+if (!$isValidPeriod($periodeA)) $periodeA = $defaultPeriodeA;
 if (!$isValidPeriod($periodeB)) $periodeB = $defaultPeriodeB;
+$periodInputOptions = $periodeOptions;
+$periodInputOptions[] = $defaultPeriodeA;
+sort($periodInputOptions, SORT_STRING);
 $rentangPeriodeAwal = min($periodeA, $periodeB);
 $rentangPeriodeAkhir = max($periodeA, $periodeB);
 $periodeFilter = $periodeB;
@@ -1044,12 +1049,12 @@ foreach ($yearOptions as $yearOption) {
                 <div class="board-period-fields">
                     <label class="hero-select-field">
                         <span class="hero-filter-label">Periode A</span>
-                        <input type="month" id="boardPeriodeA" value="<?= htmlspecialchars($periodeA) ?>" min="<?= htmlspecialchars($periodeOptions[0] ?? '') ?>" max="<?= htmlspecialchars($periodeOptions[count($periodeOptions) - 1] ?? '') ?>" aria-label="Pilih bulan dan tahun periode A" onchange="navigateBoardPeriod('a')">
+                        <input type="month" id="boardPeriodeA" value="<?= htmlspecialchars($periodeA) ?>" min="<?= htmlspecialchars($periodInputOptions[0] ?? '') ?>" max="<?= htmlspecialchars($periodInputOptions[count($periodInputOptions) - 1] ?? '') ?>" aria-label="Pilih bulan dan tahun periode A" onchange="navigateBoardPeriod('a')">
                     </label>
 
                     <label class="hero-select-field">
                         <span class="hero-filter-label">Periode B</span>
-                        <input type="month" id="boardPeriodeB" value="<?= htmlspecialchars($periodeB) ?>" min="<?= htmlspecialchars($periodeOptions[0] ?? '') ?>" max="<?= htmlspecialchars($periodeOptions[count($periodeOptions) - 1] ?? '') ?>" aria-label="Pilih bulan dan tahun periode B" onchange="navigateBoardPeriod('b')">
+                        <input type="month" id="boardPeriodeB" value="<?= htmlspecialchars($periodeB) ?>" min="<?= htmlspecialchars($periodInputOptions[0] ?? '') ?>" max="<?= htmlspecialchars($periodInputOptions[count($periodInputOptions) - 1] ?? '') ?>" aria-label="Pilih bulan dan tahun periode B" onchange="navigateBoardPeriod('b')">
                     </label>
                 </div>
             <?php endif; ?>
