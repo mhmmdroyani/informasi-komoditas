@@ -1,16 +1,48 @@
 <?php
 // config/auth.php
+const ADMIN_IDLE_TIMEOUT = 1800;
+const ADMIN_MAX_SESSION_DURATION = 28800;
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 function is_logged_in() {
-    return isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+    if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+        return false;
+    }
+
+    $now = time();
+    if (!isset($_SESSION['admin_authenticated_at'])) {
+        $_SESSION['admin_authenticated_at'] = $now;
+    }
+    if (!isset($_SESSION['admin_last_activity'])) {
+        $_SESSION['admin_last_activity'] = $now;
+    }
+
+    if (
+        $now - (int)$_SESSION['admin_last_activity'] >= ADMIN_IDLE_TIMEOUT
+        || $now - (int)$_SESSION['admin_authenticated_at'] >= ADMIN_MAX_SESSION_DURATION
+    ) {
+        unset(
+            $_SESSION['admin_logged_in'],
+            $_SESSION['admin_id'],
+            $_SESSION['admin_username'],
+            $_SESSION['admin_nama'],
+            $_SESSION['admin_role'],
+            $_SESSION['admin_authenticated_at'],
+            $_SESSION['admin_last_activity']
+        );
+        return false;
+    }
+
+    $_SESSION['admin_last_activity'] = $now;
+    return true;
 }
 
 function require_admin() {
     if (!is_logged_in()) {
-        header('Location: login.php');
+        header('Location: login.php?expired=1');
         exit;
     }
 }

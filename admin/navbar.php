@@ -148,6 +148,128 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 })();
 </script>
 
+<div class="admin-confirm-backdrop" id="adminSessionTimeoutModal" hidden>
+    <div class="admin-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="adminSessionTimeoutTitle" aria-describedby="adminSessionTimeoutMessage">
+        <div class="admin-confirm-icon" aria-hidden="true">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        </div>
+        <div class="admin-confirm-content">
+            <h2 id="adminSessionTimeoutTitle">Sesi akan berakhir</h2>
+            <p id="adminSessionTimeoutMessage">Sesi Anda akan segera berakhir.</p>
+        </div>
+        <div class="admin-confirm-actions">
+            <button type="button" class="btn btn-primary" id="adminSessionExtend">Perpanjang sesi</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const modal = document.getElementById('adminSessionTimeoutModal');
+    const message = document.getElementById('adminSessionTimeoutMessage');
+    const extendButton = document.getElementById('adminSessionExtend');
+    const csrfToken = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    const idleTimeoutMs = <?= ADMIN_IDLE_TIMEOUT * 1000 ?>;
+    let idleExpiresAt = Date.now() + <?= max(0, ADMIN_IDLE_TIMEOUT - (time() - (int)($_SESSION['admin_last_activity'] ?? time()))) ?> * 1000;
+    let maxExpiresAt = Date.now() + <?= max(0, ADMIN_MAX_SESSION_DURATION - (time() - (int)($_SESSION['admin_authenticated_at'] ?? time()))) ?> * 1000;
+    let timer = null;
+    let lastSyncAt = 0;
+    let lastActivityEventAt = 0;
+    let syncPromise = null;
+    let warningVisible = false;
+
+    function expireSession() {
+        window.location.replace('login.php?expired=1');
+    }
+
+    function updateWarning() {
+        const remaining = Math.min(idleExpiresAt, maxExpiresAt) - Date.now();
+        if (remaining <= 0) {
+            expireSession();
+            return;
+        }
+
+        if (remaining <= 120000) {
+            warningVisible = true;
+            const seconds = Math.ceil(remaining / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const leftoverSeconds = seconds % 60;
+            const countdown = (minutes > 0 ? minutes + ' menit ' : '') + leftoverSeconds + ' detik';
+            const maximumWillExpireFirst = maxExpiresAt <= idleExpiresAt;
+            message.textContent = maximumWillExpireFirst
+                ? 'Batas maksimum sesi tercapai dalam ' + countdown + '. Anda akan diminta masuk kembali.'
+                : 'Sesi akan berakhir dalam ' + countdown + ' karena tidak ada aktivitas.';
+            extendButton.hidden = maximumWillExpireFirst;
+            modal.hidden = false;
+        }
+
+        clearTimeout(timer);
+        timer = window.setTimeout(updateWarning, remaining <= 120000 ? 1000 : remaining - 120000);
+    }
+
+    function syncSession() {
+        if (syncPromise) return syncPromise;
+
+        syncPromise = fetch('session_activity.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ csrf_token: csrfToken })
+        }).then(async function(response) {
+            if (response.status === 401) {
+                expireSession();
+                return false;
+            }
+            if (!response.ok) {
+                throw new Error('Gagal memperbarui sesi admin (HTTP ' + response.status + ').');
+            }
+
+            const result = await response.json();
+            const now = Date.now();
+            idleExpiresAt = now + result.idle_remaining_seconds * 1000;
+            maxExpiresAt = now + result.absolute_remaining_seconds * 1000;
+            lastSyncAt = now;
+            warningVisible = false;
+            modal.hidden = true;
+            updateWarning();
+            return true;
+        }).catch(function(error) {
+            console.error(error);
+            if (warningVisible) {
+                message.textContent = 'Sesi belum berhasil diperpanjang. Periksa koneksi, lalu coba lagi.';
+            }
+            return false;
+        }).finally(function() {
+            syncPromise = null;
+        });
+
+        return syncPromise;
+    }
+
+    function recordActivity() {
+        const now = Date.now();
+        if (now - lastActivityEventAt < 1000) return;
+        lastActivityEventAt = now;
+        idleExpiresAt = now + idleTimeoutMs;
+        updateWarning();
+
+        if (warningVisible || now - lastSyncAt >= 60000) {
+            syncSession();
+        }
+    }
+
+    ['keydown', 'mousedown', 'mousemove', 'scroll', 'touchstart'].forEach(function(eventName) {
+        document.addEventListener(eventName, recordActivity, { passive: true });
+    });
+
+    extendButton.addEventListener('click', function() {
+        syncSession();
+    });
+
+    updateWarning();
+})();
+</script>
+
 <div class="admin-confirm-backdrop" id="adminConfirmModal" hidden>
     <div class="admin-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="adminConfirmTitle" aria-describedby="adminConfirmMessage">
         <div class="admin-confirm-icon" aria-hidden="true">

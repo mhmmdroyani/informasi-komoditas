@@ -9,7 +9,9 @@ if (is_logged_in()) {
     exit;
 }
 
-$error = '';
+$error = isset($_GET['expired'])
+    ? 'Sesi Anda berakhir karena tidak ada aktivitas atau telah mencapai batas waktu. Silakan masuk kembali.'
+    : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
@@ -30,6 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['admin_username'] = $user['username'];
             $_SESSION['admin_nama'] = $user['nama'];
             $_SESSION['admin_role'] = $user['role'] ?? 'admin';
+            $_SESSION['admin_authenticated_at'] = time();
+            $_SESSION['admin_last_activity'] = time();
             log_admin_activity($pdo, 'login', 'Berhasil masuk ke panel admin.');
             
             header('Location: index.php');
