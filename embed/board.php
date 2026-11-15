@@ -48,7 +48,8 @@ $publishedPeriods = $periodeStmt->fetchAll(PDO::FETCH_COLUMN);
 $periodeOptionSet = array_fill_keys($publishedPeriods, true);
 $nihilPeriodsStmt = $pdo->prepare('SELECT periode FROM ekspor_nihil WHERE jenis_kegiatan = ? AND kategori = ?');
 $nihilPeriodsStmt->execute([$jenis, $kategori]);
-foreach ($nihilPeriodsStmt->fetchAll(PDO::FETCH_COLUMN) as $nihilPeriod) {
+$nihilPeriods = $nihilPeriodsStmt->fetchAll(PDO::FETCH_COLUMN);
+foreach ($nihilPeriods as $nihilPeriod) {
     $periodeOptionSet[$nihilPeriod] = true;
 }
 
@@ -87,27 +88,27 @@ $isValidPeriod = static function (string $period): bool {
         && checkdate((int)$matches[2], 1, (int)$matches[1]);
 };
 $periodeA = $requestedPeriodeA;
-$defaultPeriodeB = (new DateTimeImmutable('first day of this month'))
-    ->modify('-1 month')
-    ->format('Y-m');
-$defaultPeriodeA = (new DateTimeImmutable('first day of this year'))
-    ->format('Y-m');
-if (!in_array($defaultPeriodeB, $periodeOptions, true)) {
-    $availablePreviousPeriods = array_values(array_filter(
-        $periodeOptions,
-        static function ($period) use ($defaultPeriodeB) {
-            return $period <= $defaultPeriodeB;
-        }
-    ));
-    $defaultPeriodeB = $availablePreviousPeriods !== []
-        ? end($availablePreviousPeriods)
-        : ($periodeOptions[count($periodeOptions) - 1] ?? '');
-}
+$currentYear = (new DateTimeImmutable('now', new DateTimeZone('Asia/Makassar')))->format('Y');
+$defaultPeriodeA = $currentYear . '-01';
+$defaultPeriodeCandidates = array_merge(
+    $publishedPeriods,
+    $nihilPeriods
+);
+$currentYearPeriods = array_values(array_filter(
+    $defaultPeriodeCandidates,
+    static function ($period) use ($currentYear) {
+        return is_string($period)
+            && preg_match('/^' . preg_quote($currentYear, '/') . '-(0[1-9]|1[0-2])$/', $period);
+    }
+));
+sort($currentYearPeriods, SORT_STRING);
+$defaultPeriodeB = $currentYearPeriods !== []
+    ? $currentYearPeriods[count($currentYearPeriods) - 1]
+    : $defaultPeriodeA;
 $periodeB = $requestedPeriodeB;
 if (!$isValidPeriod($periodeA)) $periodeA = $defaultPeriodeA;
 if (!$isValidPeriod($periodeB)) $periodeB = $defaultPeriodeB;
-$periodInputOptions = $periodeOptions;
-$periodInputOptions[] = $defaultPeriodeA;
+$periodInputOptions = array_merge($periodeOptions, [$defaultPeriodeA, $defaultPeriodeB]);
 sort($periodInputOptions, SORT_STRING);
 $rentangPeriodeAwal = min($periodeA, $periodeB);
 $rentangPeriodeAkhir = max($periodeA, $periodeB);

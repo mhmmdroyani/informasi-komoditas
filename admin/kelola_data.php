@@ -220,7 +220,7 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                 <h1 class="page-title">Kelola Data & Publikasi Board</h1>
             </div>
             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                <a href="../embed/board.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori, 'periode_a' => $periodeA, 'periode_b' => $periodeB]), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-brand">
+                <a href="../embed/board.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori]), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-brand">
                     <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                     <span>Preview Board (<?= ucfirst($kategori) ?>)</span>
                 </a>
@@ -238,7 +238,7 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                     <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     <span><strong>Tampilan board berhasil diperbarui!</strong> Sebanyak <strong><?= htmlspecialchars($pubCount) ?> data</strong> kini berstatus dipublikasikan.</span>
                 </div>
-                <a href="../embed/board.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori, 'periode_a' => $periodeA, 'periode_b' => $periodeB]), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 600; white-space: nowrap;">Lihat Board &rarr;</a>
+                <a href="../embed/board.php?<?= htmlspecialchars(http_build_query(['jenis' => $jenis, 'kategori' => $kategori]), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 600; white-space: nowrap;">Lihat Board &rarr;</a>
             </div>
         <?php elseif ($msg === 'hapus_sukses'): ?>
             <div class="alert alert-warning" style="margin-bottom: 16px;">
