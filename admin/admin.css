@@ -162,7 +162,7 @@ a {
   inset: 0 auto 0 0;
   z-index: 100;
   display: flex;
-  width: 264px;
+  width: 240px;
   height: 100vh;
   height: 100dvh;
   flex-direction: column;
@@ -183,48 +183,50 @@ a {
 }
 
 .admin-sidebar-header {
+  position: relative;
   display: flex;
   height: 76px;
   min-height: 76px;
   flex: 0 0 76px;
   align-items: center;
-  gap: 6px;
 }
 
 .admin-brand {
   display: flex;
-  flex: 1 1 auto;
   align-items: center;
   justify-content: center;
-  min-width: 0;
+  width: 100%;
   height: 100%;
   overflow: hidden;
-  padding: 0 6px;
+  padding: 0 36px;
   text-decoration: none;
 }
 
 .admin-brand img {
   display: block;
-  width: 168px;
+  width: 148px;
   max-width: 100%;
   height: auto;
   flex: 0 0 auto;
 }
 
 .admin-sidebar-pin {
+  position: absolute;
+  top: 50%;
+  right: 2px;
   display: inline-flex;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
+  width: 28px;
+  height: 28px;
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 9px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 7px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.62);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .admin-sidebar-pin:hover,
@@ -234,11 +236,11 @@ a {
 }
 
 .admin-sidebar-pin svg {
-  transition: transform 0.15s ease;
+  transition: rotate 0.15s ease;
 }
 
 .admin-sidebar-pin[aria-pressed="true"] svg {
-  transform: rotate(-35deg);
+  rotate: -35deg;
 }
 
 .admin-nav-links {
@@ -394,18 +396,18 @@ a {
 }
 
 .admin-main {
-  margin-left: 264px;
+  margin-left: 240px;
   transition: margin-left 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (min-width: 901px) {
   .admin-nav.is-collapsed {
-    width: 76px;
+    width: 64px;
   }
 
   .admin-nav.is-collapsed .admin-nav-inner {
-    padding-right: 8px;
-    padding-left: 8px;
+    padding-right: 7px;
+    padding-left: 7px;
   }
 
   .admin-nav.is-collapsed .admin-sidebar-header {
@@ -413,8 +415,7 @@ a {
   }
 
   .admin-nav.is-collapsed .admin-brand {
-    width: 52px;
-    flex: 0 0 52px;
+    width: 100%;
     padding: 0;
   }
 
@@ -433,8 +434,8 @@ a {
   }
 
   .admin-nav.is-collapsed .admin-brand img {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     max-width: none;
     object-fit: cover;
     object-position: left center;
@@ -473,7 +474,7 @@ a {
   }
 
   body.admin-sidebar-collapsed .admin-main {
-    margin-left: 76px;
+    margin-left: 64px;
   }
 }
 
@@ -1516,7 +1517,6 @@ table.data-table {
 
   .admin-brand {
     width: calc(100% - 48px);
-    flex: 0 0 calc(100% - 48px);
     height: 64px;
     padding: 0 6px;
   }

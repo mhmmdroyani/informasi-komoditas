@@ -17,7 +17,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 <img src="../embed/sigma-logo.png" alt="Logo SIGMA">
             </a>
             <button class="admin-sidebar-pin" id="adminSidebarPin" type="button" aria-pressed="false" aria-label="Pin sidebar agar tetap terbuka" title="Pin sidebar agar tetap terbuka">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5-5 1-4 4-1 5-3-3-3 3"/><path d="m8 8-5 1 5 5"/></svg>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 15 8l-1 5 3 3v2H7v-2l3-3-1-5 3-5Z"/><path d="M12 18v4"/></svg>
             </button>
         </div>
         <button class="admin-sidebar-close" id="adminSidebarClose" type="button" aria-label="Tutup menu navigasi">
