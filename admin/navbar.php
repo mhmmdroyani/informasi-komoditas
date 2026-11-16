@@ -70,21 +70,23 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             </a>
         </div>
 
-        <div class="admin-nav-user">
-            <span>Masuk sebagai <strong><?= htmlspecialchars($admin['nama']) ?></strong></span>
-            <form method="POST" action="logout.php" data-confirm="Yakin ingin logout?" style="display: inline;">
-                <?= csrf_field() ?>
-                <button type="submit" class="admin-logout" title="Logout" aria-label="Logout">
-                    <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3"/><path d="M12 3h6a2 2 0 012 2v14a2 2 0 01-2 2h-6"/></svg>
-                    <span>Logout</span>
-                </button>
-            </form>
+        <div class="admin-sidebar-footer">
+            <button class="admin-sidebar-collapse" id="adminSidebarCollapse" type="button" aria-controls="adminSidebar" aria-expanded="true" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
+                <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16m7-5-3-3 3-3"></path></svg>
+            </button>
+            <div class="admin-nav-user">
+                <span>Masuk sebagai <strong><?= htmlspecialchars($admin['nama']) ?></strong></span>
+                <form method="POST" action="logout.php" data-confirm="Yakin ingin logout?" style="display: inline;">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="admin-logout" title="Logout" aria-label="Logout">
+                        <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3"/><path d="M12 3h6a2 2 0 012 2v14a2 2 0 01-2 2h-6"/></svg>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </nav>
-<button class="admin-sidebar-collapse" id="adminSidebarCollapse" type="button" aria-controls="adminSidebar" aria-expanded="true" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
-    <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16m7-5-3-3 3-3"></path></svg>
-</button>
 
 <script>
 (function() {
