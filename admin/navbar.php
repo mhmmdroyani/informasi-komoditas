@@ -14,11 +14,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <div class="admin-nav-inner">
         <div class="admin-sidebar-header">
             <a href="index.php" class="admin-brand">
-                <img src="../embed/logo-barantin.png" alt="Logo Barantin">
-                <div class="admin-brand-text">
-                    <strong>Badan Karantina Indonesia</strong>
-                    <span>Balai Karantina Kalimantan Selatan</span>
-                </div>
+                <img src="../embed/sigma-logo.png" alt="Logo SIGMA">
             </a>
             <button class="admin-sidebar-collapse" id="adminSidebarCollapse" type="button" aria-controls="adminSidebar" aria-expanded="true" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
                 <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16m7-5-3-3 3-3"></path></svg>

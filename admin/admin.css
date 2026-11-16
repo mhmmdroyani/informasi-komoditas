@@ -187,48 +187,33 @@ a {
 }
 
 .admin-sidebar-header {
-  position: relative;
   display: flex;
-  height: 88px;
-  min-height: 88px;
-  flex: 0 0 88px;
-  align-items: flex-start;
+  height: 116px;
+  min-height: 116px;
+  flex: 0 0 116px;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .admin-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 48px;
   width: 100%;
-  text-decoration: none;
-  flex: 0 0 48px;
-  min-width: 0;
+  height: 76px;
+  min-height: 76px;
+  flex: 0 0 76px;
+  overflow: hidden;
   padding: 0 6px;
+  text-decoration: none;
 }
 
 .admin-brand img {
-  height: 34px;
-  width: auto;
-}
-
-.admin-brand-text {
-  line-height: 1.25;
-}
-
-.admin-brand-text strong {
   display: block;
-  font-size: 13px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.admin-brand-text span {
-  display: block;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--gold, #eab308);
-  color: #eab308;
+  width: 100%;
+  max-width: 210px;
+  height: auto;
+  flex: 0 0 auto;
 }
 
 .admin-nav-links {
@@ -396,17 +381,11 @@ a {
     align-items: center;
   }
 
-  .admin-nav.is-collapsed .admin-sidebar-collapse {
-    right: auto;
-    left: 12px;
-  }
-
   .admin-nav.is-collapsed .admin-brand {
-    justify-content: center;
+    width: 60px;
     padding: 0;
   }
 
-  .admin-nav.is-collapsed .admin-brand-text,
   .admin-nav.is-collapsed .admin-nav-link > span:not(.admin-nav-label),
   .admin-nav.is-collapsed .admin-nav-label > span,
   .admin-nav.is-collapsed .admin-nav-dropdown-toggle > svg:last-child,
@@ -418,6 +397,11 @@ a {
 
   .admin-nav.is-collapsed .admin-sidebar-collapse .collapse-icon {
     transform: rotate(180deg);
+  }
+
+  .admin-nav.is-collapsed .admin-brand img {
+    width: 170px;
+    max-width: none;
   }
 
   .admin-nav.is-collapsed .admin-nav-link,
@@ -462,9 +446,7 @@ a {
 }
 
 .admin-sidebar-collapse {
-  position: absolute;
-  top: 52px;
-  right: 6px;
+  position: static;
   display: inline-flex;
   width: 36px;
   height: 36px;
@@ -477,6 +459,8 @@ a {
   color: rgba(255, 255, 255, 0.78);
   cursor: pointer;
   flex: 0 0 36px;
+  align-self: flex-end;
+  margin-right: 6px;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -1495,10 +1479,6 @@ table.data-table {
     margin: 0;
   }
 
-  .admin-brand {
-    padding-right: 42px;
-  }
-
   .admin-nav {
     width: min(86vw, 310px);
     transform: translateX(-105%);
@@ -1514,14 +1494,24 @@ table.data-table {
     min-height: 100%;
   }
 
-  .admin-brand {
-    padding: 0 42px 0 6px;
+  .admin-sidebar-header {
+    height: 72px;
+    min-height: 72px;
+    flex-basis: 72px;
+    align-items: flex-start;
   }
 
-  .admin-sidebar-header {
-    height: 48px;
-    min-height: 48px;
-    flex-basis: 48px;
+  .admin-brand {
+    width: calc(100% - 48px);
+    height: 64px;
+    min-height: 64px;
+    flex-basis: 64px;
+    padding: 0 6px;
+  }
+
+  .admin-brand img {
+    width: 100%;
+    max-width: 170px;
   }
 
   .admin-sidebar-backdrop:not([hidden]) {
@@ -1543,14 +1533,6 @@ table.data-table {
 @media (max-width: 700px) {
   .admin-main {
     padding: 18px 12px 36px;
-  }
-
-  .admin-brand-text strong {
-    font-size: 11px;
-  }
-
-  .admin-brand-text span {
-    font-size: 9px;
   }
 
   .admin-logout {
@@ -1648,14 +1630,6 @@ table.data-table {
 }
 
 @media (max-width: 420px) {
-  .admin-brand img {
-    height: 29px;
-  }
-
-  .admin-brand-text strong {
-    font-size: 10px;
-  }
-
   .admin-nav-inner {
     padding-inline: 9px;
   }
