@@ -477,29 +477,36 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                                             <?php endif; ?>
                                         </td>
                                         <td style="text-align: center; white-space: nowrap;">
-                                            <?php if (!$aggregateMode): ?>
-                                            <?php if (count($row['_source_ids']) === 1): ?>
-                                            <a href="edit_data.php?id=<?= (int)$row['_source_ids'][0] ?>"
-                                                style="color: var(--brand); display: inline-flex; padding: 4px;" title="Edit">
+                                            <?php
+                                            $editParams = [
+                                                'jenis' => $jenis,
+                                                'kategori' => $kategori,
+                                                'periode_a' => $periodeA,
+                                                'periode_b' => $periodeB,
+                                            ];
+                                            if (count($row['_source_ids']) === 1) {
+                                                $editParams['id'] = (int)$row['_source_ids'][0];
+                                            } else {
+                                                $editParams['selection_key'] = $row['_selection_key'];
+                                            }
+                                            ?>
+                                            <a href="edit_data.php?<?= htmlspecialchars(http_build_query($editParams), ENT_QUOTES, 'UTF-8') ?>"
+                                                style="color: var(--brand); display: inline-flex; padding: 4px;" title="<?= count($row['_source_ids']) > 1 ? 'Pilih data per periode untuk diedit' : 'Edit' ?>" aria-label="Edit <?= htmlspecialchars($row['nama_komoditas'], ENT_QUOTES, 'UTF-8') ?>">
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                             </a>
-                                            <?php endif; ?>
-                                            <form method="POST" action="hapus_data.php" style="display: inline;" data-confirm="Hapus komoditas ini?" data-confirm-tone="danger">
+                                            <form method="POST" action="hapus_data.php" style="display: inline;" data-confirm="Hapus <?= (int)$row['source_count'] ?> data <?= htmlspecialchars($row['nama_komoditas'], ENT_QUOTES, 'UTF-8') ?> yang tercakup pada periode <?= htmlspecialchars($rangePeriodLabel, ENT_QUOTES, 'UTF-8') ?>? Tindakan ini tidak bisa dibatalkan." data-confirm-tone="danger">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="action" value="group_ids">
                                                 <input type="hidden" name="ids" value="<?= htmlspecialchars(implode(',', $row['_source_ids']), ENT_QUOTES, 'UTF-8') ?>">
                                                 <input type="hidden" name="jenis" value="<?= htmlspecialchars($jenis) ?>">
                                                 <input type="hidden" name="kategori" value="<?= htmlspecialchars($kategori) ?>">
-                                                <input type="hidden" name="periode" value="<?= htmlspecialchars($row['periode'] ?? '') ?>">
+                                                <input type="hidden" name="periode" value="<?= htmlspecialchars($periodeA) ?>">
                                                 <input type="hidden" name="periode_a" value="<?= htmlspecialchars($periodeA) ?>">
                                                 <input type="hidden" name="periode_b" value="<?= htmlspecialchars($periodeB) ?>">
-                                                <button type="submit" style="color: var(--danger); background: none; border: 0; display: inline-flex; padding: 4px; cursor: pointer;" title="Hapus">
+                                                <button type="submit" style="color: var(--danger); background: none; border: 0; display: inline-flex; padding: 4px; cursor: pointer;" title="Hapus semua data komoditas ini dalam rentang periode terpilih" aria-label="Hapus <?= htmlspecialchars($row['nama_komoditas'], ENT_QUOTES, 'UTF-8') ?>">
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                 </button>
                                             </form>
-                                            <?php else: ?>
-                                                <span style="color: var(--ink-muted);">-</span>
-                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

@@ -2,28 +2,91 @@
 // admin/edit_data.php
 require_once __DIR__ . '/../config/koneksi.php';
 require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../includes/period_aggregation.php';
 require_once __DIR__ . '/../includes/admin_activity.php';
 require_admin();
 
 $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
-if ($id <= 0) {
+$selectionRows = null;
+$selectionKey = (string)($_GET['selection_key'] ?? '');
+$returnJenis = $_GET['jenis'] ?? $_POST['return_jenis'] ?? '';
+$returnKategori = $_GET['kategori'] ?? $_POST['return_kategori'] ?? '';
+$returnPeriodA = $_GET['periode_a'] ?? $_POST['return_periode_a'] ?? '';
+$returnPeriodB = $_GET['periode_b'] ?? $_POST['return_periode_b'] ?? '';
+$returnParams = [];
+if (
+    in_array($returnJenis, ['ekspor', 'impor', 'domestik_keluar', 'domestik_masuk'], true)
+    && in_array($returnKategori, ['hewan', 'ikan', 'tumbuhan'], true)
+    && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $returnPeriodA)
+    && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $returnPeriodB)
+) {
+    $returnParams = [
+        'jenis' => $returnJenis,
+        'kategori' => $returnKategori,
+        'periode_a' => $returnPeriodA,
+        'periode_b' => $returnPeriodB,
+    ];
+}
+
+if ($id <= 0 && preg_match('/^[a-f0-9]{64}$/', $selectionKey) && $returnParams !== []) {
+    $rangeStart = min($returnPeriodA, $returnPeriodB);
+    $rangeEnd = max($returnPeriodA, $returnPeriodB);
+    $stmtRange = $pdo->prepare(
+        'SELECT * FROM ekspor_komoditas
+         WHERE jenis_kegiatan = ? AND kategori = ? AND periode >= ? AND periode <= ?
+           AND periode REGEXP \'^[0-9]{4}-(0[1-9]|1[0-2])$\''
+    );
+    $stmtRange->execute([$returnJenis, $returnKategori, $rangeStart, $rangeEnd]);
+    $groupIds = [];
+    foreach (aggregate_commodity_rows($stmtRange->fetchAll(PDO::FETCH_ASSOC)) as $group) {
+        if (hash_equals($group['_selection_key'], $selectionKey)) {
+            $groupIds = $group['_source_ids'];
+            break;
+        }
+    }
+
+    if ($groupIds !== []) {
+        $placeholders = implode(',', array_fill(0, count($groupIds), '?'));
+        $stmtSelection = $pdo->prepare(
+            "SELECT id, nama_komoditas, periode, frekuensi, volume, satuan, nilai_ekspor
+             FROM ekspor_komoditas
+             WHERE id IN ($placeholders)
+               AND jenis_kegiatan = ? AND kategori = ?
+               AND periode >= ? AND periode <= ?
+             ORDER BY periode ASC, nama_komoditas ASC"
+        );
+        $stmtSelection->execute(array_merge(
+            $groupIds,
+            [$returnJenis, $returnKategori, $rangeStart, $rangeEnd]
+        ));
+        $selectionRows = $stmtSelection->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    if ($selectionRows === null || $selectionRows === []) {
+        header('Location: kelola_data.php?' . http_build_query($returnParams + ['error' => 'Data komoditas tidak ditemukan pada rentang periode tersebut.']));
+        exit;
+    }
+} elseif ($id > 0) {
+    $stmt = $pdo->prepare("SELECT * FROM ekspor_komoditas WHERE id = ? LIMIT 1");
+    $stmt->execute([$id]);
+    $row = $stmt->fetch();
+
+    if (!$row) {
+        header('Location: kelola_data.php?error=' . urlencode('Data tidak ditemukan.'));
+        exit;
+    }
+} else {
     header('Location: kelola_data.php');
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT * FROM ekspor_komoditas WHERE id = ? LIMIT 1");
-$stmt->execute([$id]);
-$row = $stmt->fetch();
-
-if (!$row) {
-    header('Location: kelola_data.php?error=' . urlencode('Data tidak ditemukan.'));
-    exit;
-}
-
+$row = $row ?? null;
 $error = '';
-$labelNegara = in_array($row['jenis_kegiatan'], ['domestik_keluar', 'domestik_masuk'], true)
-    ? 'Negara / Perusahaan (opsional)'
-    : get_label_arah($row['jenis_kegiatan']) . ' / Perusahaan';
+$labelNegara = $row === null
+    ? ''
+    : (in_array($row['jenis_kegiatan'], ['domestik_keluar', 'domestik_masuk'], true)
+        ? 'Negara / Perusahaan (opsional)'
+        : get_label_arah($row['jenis_kegiatan']) . ' / Perusahaan');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
@@ -68,7 +131,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'edit_data',
             sprintf('Mengubah data komoditas ID %d (%s/%s).', $id, $row['kategori'], $row['jenis_kegiatan'])
         );
-        header('Location: kelola_data.php?jenis=' . urlencode($row['jenis_kegiatan']) . '&kategori=' . urlencode($row['kategori']) . '&msg=edit_sukses');
+        $redirectParams = [
+            'jenis' => $row['jenis_kegiatan'],
+            'kategori' => $row['kategori'],
+            'msg' => 'edit_sukses',
+        ];
+        if ($returnParams !== []) {
+            $redirectParams += $returnParams;
+        }
+        header('Location: kelola_data.php?' . http_build_query($redirectParams));
         exit;
     }
 }
@@ -85,7 +156,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <?php require 'navbar.php'; ?>
 
-    <div class="admin-main" style="max-width: 720px;">
+    <div class="admin-main" style="max-width: <?= $selectionRows !== null ? '1100px' : '720px' ?>;">
+        <?php if ($selectionRows !== null): ?>
+            <div class="page-header">
+                <div>
+                    <span class="eyebrow"><span class="dot dot-brand"></span> Pilih data komoditas</span>
+                    <h1 class="page-title">Pilih Periode untuk Diedit</h1>
+                    <p class="page-desc">Komoditas ini memiliki beberapa data dalam rentang terpilih. Pilih satu baris untuk mengedit record pada periode tersebut.</p>
+                </div>
+            </div>
+            <section class="card" style="overflow: hidden;">
+                <div class="data-table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Periode</th>
+                                <th>Komoditas</th>
+                                <th style="text-align: right;">Frekuensi</th>
+                                <th style="text-align: right;">Volume</th>
+                                <th style="text-align: right;">Nilai Komoditas (Rp)</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($selectionRows as $selectionRow): ?>
+                                <?php $editParams = ['id' => (int)$selectionRow['id']] + $returnParams; ?>
+                                <tr>
+                                    <td><?= htmlspecialchars(format_label_periode_kode($selectionRow['periode']) ?: $selectionRow['periode']) ?></td>
+                                    <td><?= htmlspecialchars($selectionRow['nama_komoditas']) ?></td>
+                                    <td style="text-align: right;"><?= number_format((int)$selectionRow['frekuensi'], 0, ',', '.') ?></td>
+                                    <td style="text-align: right;"><?= number_format((float)$selectionRow['volume'], 2, ',', '.') ?> <?= htmlspecialchars($selectionRow['satuan'] ?? '') ?></td>
+                                    <td style="text-align: right;">Rp <?= number_format((float)$selectionRow['nilai_ekspor'], 0, ',', '.') ?></td>
+                                    <td>
+                                        <a class="btn btn-outline-brand btn-sm" href="edit_data.php?<?= htmlspecialchars(http_build_query($editParams), ENT_QUOTES, 'UTF-8') ?>">Edit data ini</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <a href="kelola_data.php?<?= htmlspecialchars(http_build_query($returnParams), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-secondary" style="margin-top: 16px;">Kembali ke daftar komoditas</a>
+        <?php else: ?>
         <div class="page-header">
             <div>
                 <span class="eyebrow"><span class="dot dot-brand"></span> <?= htmlspecialchars(get_label_kegiatan($row['jenis_kegiatan'])) ?> &bull; <?= ucfirst($row['kategori']) ?></span>
@@ -105,6 +217,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST" action="" style="display: flex; flex-direction: column; gap: 18px;">
                 <?= csrf_field() ?>
                 <input type="hidden" name="id" value="<?= (int)$row['id'] ?>">
+                <input type="hidden" name="return_jenis" value="<?= htmlspecialchars($returnJenis) ?>">
+                <input type="hidden" name="return_kategori" value="<?= htmlspecialchars($returnKategori) ?>">
+                <input type="hidden" name="return_periode_a" value="<?= htmlspecialchars($returnPeriodA) ?>">
+                <input type="hidden" name="return_periode_b" value="<?= htmlspecialchars($returnPeriodB) ?>">
 
                 <div>
                     <label class="field-label">Klasifikasi</label>
@@ -172,7 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--line);">
-                    <a href="kelola_data.php?jenis=<?= urlencode($row['jenis_kegiatan']) ?>&kategori=<?= urlencode($row['kategori']) ?>" style="font-size: 13px; color: var(--ink-muted); text-decoration: none;">Batal / Kembali</a>
+                    <a href="kelola_data.php?<?= htmlspecialchars(http_build_query($returnParams !== [] ? $returnParams : ['jenis' => $row['jenis_kegiatan'], 'kategori' => $row['kategori']]), ENT_QUOTES, 'UTF-8') ?>" style="font-size: 13px; color: var(--ink-muted); text-decoration: none;">Batal / Kembali</a>
                     <button type="submit" class="btn btn-primary">
                         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         <span>Simpan Perubahan</span>
@@ -180,6 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </form>
         </div>
+        <?php endif; ?>
     </div>
 </body>
 </html>

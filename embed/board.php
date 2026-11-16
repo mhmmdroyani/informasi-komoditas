@@ -516,6 +516,11 @@ $labelArah = get_label_arah($jenis);
 $labelArahUpper = $labelArah;
 $labelSatuanWilayah = get_label_wilayah($jenis);
 $summaryMetricLabel = $urutan === 'frekuensi' ? 'Frekuensi' : 'Nilai ' . $labelKegiatan;
+$boardTitle = $comparisonPage
+    ? 'Mode Grafik'
+    : ($topN === 0
+        ? 'KOMODITAS ' . strtoupper($labelKategori) . ' (SEMUA) - ' . strtoupper($labelKegiatan)
+        : 'Top ' . $topN . ' Komoditas ' . $labelKategori . ' — ' . $labelKegiatan);
 
 // Top Commodity Name
 $topKomoditasName = 'Komoditas';
@@ -998,7 +1003,7 @@ foreach ($comparisonYearOptions as $yearOption) {
     <!-- Hero -->
     <section class="board-hero">
         <img class="board-print-sigma-logo" src="<?= htmlspecialchars($assetPath . 'sigma-logo.png', ENT_QUOTES, 'UTF-8') ?>" alt="SIGMA — Sistem Infografis Komoditas Karantina">
-        <h1 class="board-hero-title"><?= $comparisonPage ? 'Mode Grafik' : 'Top ' . ($topN > 0 ? $topN : 'Semua') . ' Komoditas' ?> <?= $labelKategori ?> — <?= $labelKegiatan ?></h1>
+        <h1 class="board-hero-title"><?= htmlspecialchars($boardTitle, ENT_QUOTES, 'UTF-8') ?></h1>
 
         <div class="board-periode-wrap">
             <span class="board-periode-badge"><?= htmlspecialchars(str_replace(' - ', ' – ', $labelTahunPublik)) ?></span>

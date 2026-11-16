@@ -400,6 +400,12 @@ function handle_raw_excel_upload($pdo, $kategori, array $databaseConfig)
     if (!preg_match('/^(\d{4})-(\d{2})$/', $periode, $matches)
         || !checkdate((int)$matches[2], 1, (int)$matches[1])) {
         $error = 'Pilih satu bulan dan tahun data yang valid.';
+    } elseif (
+        isset($_FILES['file_excel']['name'])
+        && is_array($_FILES['file_excel']['name'])
+        && count($_FILES['file_excel']['name']) > 1
+    ) {
+        $error = 'Maksimal satu file dapat diunggah. Silakan pilih satu file saja.';
     } elseif (isset($_POST['nihil']) && $_POST['nihil'] === '1') {
         try {
             $pdo = create_database_connection($databaseConfig);

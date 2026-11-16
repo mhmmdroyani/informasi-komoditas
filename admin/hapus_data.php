@@ -82,22 +82,46 @@ if ($action === 'group_ids') {
             return $id > 0;
         }
     )));
-    if ($ids !== []) {
-        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $periode)) {
-            http_response_code(400);
-            exit('Periode data tidak valid.');
-        }
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $stmt = $pdo->prepare(
-            "DELETE FROM ekspor_komoditas
-             WHERE id IN ($placeholders)
-               AND jenis_kegiatan = ?
-               AND kategori = ?
-               AND periode = ?"
-        );
-        $stmt->execute(array_merge($ids, [$jenis, $kategori, $periode]));
-        log_admin_activity($pdo, 'hapus_data', sprintf('Menghapus %d baris data %s/%s periode %s.', $stmt->rowCount(), $kategori, $jenis, $periode));
+    if ($ids === []) {
+        http_response_code(400);
+        exit('Data komoditas yang akan dihapus tidak ditemukan.');
     }
+
+    $periodA = trim($_POST['periode_a'] ?? $periode);
+    $periodB = trim($_POST['periode_b'] ?? $periode);
+    if (
+        !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $periodA)
+        || !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $periodB)
+    ) {
+        http_response_code(400);
+        exit('Rentang periode data tidak valid.');
+    }
+
+    $rangeStart = min($periodA, $periodB);
+    $rangeEnd = max($periodA, $periodB);
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $pdo->prepare(
+        "DELETE FROM ekspor_komoditas
+         WHERE id IN ($placeholders)
+           AND jenis_kegiatan = ?
+           AND kategori = ?
+           AND periode >= ?
+           AND periode <= ?
+           AND periode REGEXP '^[0-9]{4}-(0[1-9]|1[0-2])$'"
+    );
+    $stmt->execute(array_merge($ids, [$jenis, $kategori, $rangeStart, $rangeEnd]));
+    log_admin_activity(
+        $pdo,
+        'hapus_data',
+        sprintf(
+            'Menghapus %d baris data komoditas terpilih %s/%s pada rentang periode %s–%s.',
+            $stmt->rowCount(),
+            $kategori,
+            $jenis,
+            $rangeStart,
+            $rangeEnd
+        )
+    );
 } elseif ($action === 'single') {
     $id = (int)($_POST['id'] ?? 0);
     if ($id > 0) {

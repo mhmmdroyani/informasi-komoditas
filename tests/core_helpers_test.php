@@ -64,6 +64,8 @@ $aggregated = aggregate_commodity_rows([
 
 expect_core_same(2, count($aggregated), 'Grouped commodity rows should stay separate from exceptions.');
 expect_core_same('Burung', $aggregated[0]['nama_komoditas'], 'The grouped display name should be canonical.');
+expect_core_same([1, 2], $aggregated[0]['_source_ids'], 'Grouped rows should retain every source record for row-level actions.');
+expect_core_same(2, $aggregated[0]['source_count'], 'Grouped rows should report how many source records they represent.');
 expect_core_same(5, $aggregated[0]['frekuensi'], 'Grouped frequencies should sum.');
 expect_core_same(1500.0, $aggregated[0]['volume'], 'Compatible volume units should aggregate.');
 expect_core_same(300.0, $aggregated[0]['nilai_ekspor'], 'Grouped commodity values should sum.');

@@ -142,16 +142,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- File Excel -->
                 <div>
                     <label class="field-label">Pilih File Excel (.xlsx / .xls) <span style="color: var(--danger);">*</span></label>
-                    <label class="file-dropzone" id="fileDropzone">
-                        <input type="file" id="fileExcel" name="file_excel" required accept=".xlsx, .xls, .csv" class="file-dropzone-input" aria-label="Pilih file Excel atau CSV">
-                        <span class="file-dropzone-content" aria-hidden="true">
-                            <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M12 16V4m0 0L7 9m5-5 5 5M5 14v5a2 2 0 002 2h10a2 2 0 002-2v-5"/></svg>
-                            <strong>Tarik file Excel ke sini</strong>
-                            <span>atau klik untuk memilih file (.xlsx, .xls, .csv)</span>
-                            <small id="fileExcelName">Belum ada file dipilih</small>
-                        </span>
-                    </label>
-                    <p class="file-upload-feedback" id="fileExcelFeedback" role="status" aria-live="polite"></p>
+                    <div class="file-dropzone" id="fileDropzone">
+                        <label class="file-dropzone-label" for="fileExcel">
+                            <input type="file" id="fileExcel" name="file_excel" required accept=".xlsx, .xls, .csv" class="file-dropzone-input" aria-label="Pilih file Excel atau CSV">
+                            <span class="file-dropzone-content">
+                                <span class="file-dropzone-prompt">
+                                    <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M12 16V4m0 0L7 9m5-5 5 5M5 14v5a2 2 0 002 2h10a2 2 0 002-2v-5"/></svg>
+                                    <strong>Tarik satu file Excel ke sini</strong>
+                                    <span>atau klik untuk memilih satu file (.xlsx, .xls, .csv)</span>
+                                </span>
+                                <span class="file-dropzone-selected" id="fileExcelSelection" hidden>
+                                    <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M7 3h7l5 5v13H7a2 2 0 01-2-2V5a2 2 0 012-2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M14 3v5h5"/></svg>
+                                    <span id="fileExcelName"></span>
+                                </span>
+                            </span>
+                        </label>
+                        <button type="button" class="file-dropzone-remove" id="fileExcelRemove" aria-label="Hapus file yang dipilih" title="Hapus file" hidden>&times;</button>
+                    </div>
+                    <p class="file-upload-feedback" id="fileExcelFeedback" role="alert" aria-live="assertive"></p>
                     <label class="nihil-option">
                         <input type="checkbox" name="nihil" value="1" id="markNihil">
                         <span><strong>Tandai sebagai Nihil</strong><small>Bulan ini sudah diperiksa dan tidak ada data.</small></span>
@@ -176,7 +184,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const nihil = document.getElementById('markNihil');
         const file = document.getElementById('fileExcel');
         const dropzone = document.getElementById('fileDropzone');
+        const fileSelection = document.getElementById('fileExcelSelection');
         const fileName = document.getElementById('fileExcelName');
+        const removeFile = document.getElementById('fileExcelRemove');
         const feedback = document.getElementById('fileExcelFeedback');
         const allowedExtensions = /\.(xlsx|xls|csv)$/i;
 
@@ -193,15 +203,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             feedback.textContent = '';
             if (selectedFile && !allowedExtensions.test(selectedFile.name)) {
                 file.value = '';
-                fileName.textContent = 'Belum ada file dipilih';
+                fileName.textContent = '';
+                fileSelection.hidden = true;
+                removeFile.hidden = true;
+                dropzone.classList.remove('has-file');
                 feedback.textContent = 'Format file tidak didukung. Pilih file .xlsx, .xls, atau .csv.';
                 return false;
             }
-            fileName.textContent = selectedFile ? selectedFile.name : 'Belum ada file dipilih';
+            fileName.textContent = selectedFile ? selectedFile.name : '';
+            fileSelection.hidden = !selectedFile;
+            removeFile.hidden = !selectedFile;
+            dropzone.classList.toggle('has-file', Boolean(selectedFile));
             return true;
         };
 
-        file.addEventListener('change', () => showFile(file.files[0]));
+        const rejectMultipleFiles = () => {
+            file.value = '';
+            showFile(null);
+            feedback.textContent = 'Maksimal satu file dapat diunggah. Silakan pilih atau seret satu file saja.';
+        };
+
+        removeFile.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            file.value = '';
+            showFile(null);
+            file.focus();
+        });
+
+        file.addEventListener('change', () => {
+            if (file.files.length > 1) {
+                rejectMultipleFiles();
+                return;
+            }
+            showFile(file.files[0]);
+        });
         ['dragenter', 'dragover'].forEach(eventName => {
             dropzone.addEventListener(eventName, event => {
                 event.preventDefault();
@@ -216,7 +252,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
         dropzone.addEventListener('drop', event => {
             if (file.disabled) return;
-            const selectedFile = event.dataTransfer.files[0];
+            const droppedFiles = event.dataTransfer.files;
+            if (droppedFiles.length > 1) {
+                rejectMultipleFiles();
+                return;
+            }
+            const selectedFile = droppedFiles[0];
             if (!selectedFile) return;
             if (!showFile(selectedFile)) return;
             const transfer = new DataTransfer();
