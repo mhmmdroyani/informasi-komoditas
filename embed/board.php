@@ -1407,11 +1407,11 @@ foreach ($comparisonYearOptions as $yearOption) {
                                     }
                                 }
                             ?>
-                                <div class="dest-row" title="<?= htmlspecialchars($dName . ' — muncul pada ' . $destinationCount . ' baris data') ?>">
+                                <div class="dest-row" title="<?= htmlspecialchars($dName . ' — muncul ' . $destinationCount . ' kali') ?>">
                                     <?php if ($flagCode): ?><img class="dest-flag" src="https://flagcdn.com/w40/<?= $flagCode ?>.png" alt="Bendera <?= htmlspecialchars($dName) ?>"><?php endif; ?>
                                     <?php if (!$flagCode): ?><span class="dest-dot" style="background-color: <?= $colors[$dIdx % count($colors)] ?>;"></span><?php endif; ?>
                                     <span class="dest-name"><?= htmlspecialchars(strtoupper($dName)) ?></span>
-                                    <span class="dest-count" aria-label="Muncul pada <?= number_format($destinationCount, 0, ',', '.') ?> baris data"><?= number_format($destinationCount, 0, ',', '.') ?> data</span>
+                                    <span class="dest-count" aria-label="Muncul <?= number_format($destinationCount, 0, ',', '.') ?> kali"><?= number_format($destinationCount, 0, ',', '.') ?> kali</span>
                                 </div>
                             <?php $dIdx++; endforeach; ?>
                         </div>
@@ -1480,10 +1480,10 @@ foreach ($comparisonYearOptions as $yearOption) {
                 item.appendChild(name);
                 const count = document.createElement('span');
                 count.className = 'dest-count';
-                count.textContent = Number(location.count).toLocaleString('id-ID') + ' data';
+                count.textContent = Number(location.count).toLocaleString('id-ID') + ' kali';
                 count.setAttribute(
                     'aria-label',
-                    'Muncul pada ' + Number(location.count).toLocaleString('id-ID') + ' baris data'
+                    'Muncul ' + Number(location.count).toLocaleString('id-ID') + ' kali'
                 );
                 item.appendChild(count);
                 destinationList.appendChild(item);

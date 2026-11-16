@@ -105,7 +105,7 @@ $labelKegiatanAktif = get_label_kegiatan($activeJenis);
                     <span class="badge <?= $activeJenis === 'domestik_masuk' ? 'badge-brand' : 'badge-neutral' ?>">Antar-Area</span>
                     <div>
                         <div style="font-weight: 700; color: var(--ink); font-size: 14px;">Domestik Masuk</div>
-                        <div style="font-size: 11px; color: var(--ink-muted); margin-top: 2px;"><?= (int)$summaryAll['domestik_masuk']['published_items'] ?> / <?= (int)$summaryAll['domestik_masuk']['total_items'] ?> komoditas publish</div>
+                        <div style="font-size: 11px; color: var(--ink-muted); margin-top: 2px;"><?= (int)$summaryAll['domestik_masuk']['published_items'] ?> / <?= (int)$summaryAll['domestik_masuk']['total_items'] ?> data tayang</div>
                         <div style="margin-top: 6px; font-weight: 700; color: var(--brand);"><?= format_rupiah_singkat($summaryAll['domestik_masuk']['total_nilai']) ?></div>
                     </div>
                 </a>
@@ -115,7 +115,7 @@ $labelKegiatanAktif = get_label_kegiatan($activeJenis);
                     <span class="badge <?= $activeJenis === 'domestik_keluar' ? 'badge-brand' : 'badge-neutral' ?>">Antar-Area</span>
                     <div>
                         <div style="font-weight: 700; color: var(--ink); font-size: 14px;">Domestik Keluar</div>
-                        <div style="font-size: 11px; color: var(--ink-muted); margin-top: 2px;"><?= (int)$summaryAll['domestik_keluar']['published_items'] ?> / <?= (int)$summaryAll['domestik_keluar']['total_items'] ?> komoditas publish</div>
+                        <div style="font-size: 11px; color: var(--ink-muted); margin-top: 2px;"><?= (int)$summaryAll['domestik_keluar']['published_items'] ?> / <?= (int)$summaryAll['domestik_keluar']['total_items'] ?> data tayang</div>
                         <div style="margin-top: 6px; font-weight: 700; color: var(--brand);"><?= format_rupiah_singkat($summaryAll['domestik_keluar']['total_nilai']) ?></div>
                     </div>
                 </a>
@@ -125,7 +125,7 @@ $labelKegiatanAktif = get_label_kegiatan($activeJenis);
                     <span class="badge <?= $activeJenis === 'ekspor' ? 'badge-brand' : 'badge-neutral' ?>">Luar Negeri</span>
                     <div>
                         <div style="font-weight: 700; color: var(--ink); font-size: 14px;">Ekspor</div>
-                        <div style="font-size: 11px; color: var(--ink-muted); margin-top: 2px;"><?= (int)$summaryAll['ekspor']['published_items'] ?> / <?= (int)$summaryAll['ekspor']['total_items'] ?> komoditas publish</div>
+                        <div style="font-size: 11px; color: var(--ink-muted); margin-top: 2px;"><?= (int)$summaryAll['ekspor']['published_items'] ?> / <?= (int)$summaryAll['ekspor']['total_items'] ?> data tayang</div>
                         <div style="margin-top: 6px; font-weight: 700; color: var(--brand);"><?= format_rupiah_singkat($summaryAll['ekspor']['total_nilai']) ?></div>
                     </div>
                 </a>
@@ -135,7 +135,7 @@ $labelKegiatanAktif = get_label_kegiatan($activeJenis);
                     <span class="badge <?= $activeJenis === 'impor' ? 'badge-brand' : 'badge-neutral' ?>">Luar Negeri</span>
                     <div>
                         <div style="font-weight: 700; color: var(--ink); font-size: 14px;">Impor</div>
-                        <div style="font-size: 11px; color: var(--ink-muted); margin-top: 2px;"><?= (int)$summaryAll['impor']['published_items'] ?> / <?= (int)$summaryAll['impor']['total_items'] ?> komoditas publish</div>
+                        <div style="font-size: 11px; color: var(--ink-muted); margin-top: 2px;"><?= (int)$summaryAll['impor']['published_items'] ?> / <?= (int)$summaryAll['impor']['total_items'] ?> data tayang</div>
                         <div style="margin-top: 6px; font-weight: 700; color: var(--brand);"><?= format_rupiah_singkat($summaryAll['impor']['total_nilai']) ?></div>
                     </div>
                 </a>
@@ -166,15 +166,15 @@ $labelKegiatanAktif = get_label_kegiatan($activeJenis);
 
                     <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
                         <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--line);">
-                            <span style="color: var(--ink-muted);">Total Komoditas</span>
-                            <span style="font-weight: 600;"><?= (int)$stats['hewan']['total_items'] ?> komoditas</span>
+                            <span style="color: var(--ink-muted);">Total Data</span>
+                            <span style="font-weight: 600;"><?= (int)$stats['hewan']['total_items'] ?> data</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--line);">
-                            <span style="color: var(--ink-muted);">Status Tayang</span>
-                            <span style="font-weight: 600; color: var(--brand);"><?= (int)$stats['hewan']['published_items'] ?> komoditas</span>
+                            <span style="color: var(--ink-muted);">Data Tayang</span>
+                            <span style="font-weight: 600; color: var(--brand);"><?= (int)$stats['hewan']['published_items'] ?> data</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--line);">
-                            <span style="color: var(--ink-muted);">Total Nilai Published</span>
+                            <span style="color: var(--ink-muted);">Total Nilai Data Tayang</span>
                             <span style="font-weight: 600;"><?= format_rupiah_singkat($stats['hewan']['total_nilai']) ?></span>
                         </div>
                     </div>
@@ -198,15 +198,15 @@ $labelKegiatanAktif = get_label_kegiatan($activeJenis);
 
                     <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
                         <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--line);">
-                            <span style="color: var(--ink-muted);">Total Komoditas</span>
-                            <span style="font-weight: 600;"><?= (int)$stats['ikan']['total_items'] ?> komoditas</span>
+                            <span style="color: var(--ink-muted);">Total Data</span>
+                            <span style="font-weight: 600;"><?= (int)$stats['ikan']['total_items'] ?> data</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--line);">
-                            <span style="color: var(--ink-muted);">Status Tayang</span>
-                            <span style="font-weight: 600; color: var(--brand);"><?= (int)$stats['ikan']['published_items'] ?> komoditas</span>
+                            <span style="color: var(--ink-muted);">Data Tayang</span>
+                            <span style="font-weight: 600; color: var(--brand);"><?= (int)$stats['ikan']['published_items'] ?> data</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--line);">
-                            <span style="color: var(--ink-muted);">Total Nilai Published</span>
+                            <span style="color: var(--ink-muted);">Total Nilai Data Tayang</span>
                             <span style="font-weight: 600;"><?= format_rupiah_singkat($stats['ikan']['total_nilai']) ?></span>
                         </div>
                     </div>
@@ -230,15 +230,15 @@ $labelKegiatanAktif = get_label_kegiatan($activeJenis);
 
                     <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
                         <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--line);">
-                            <span style="color: var(--ink-muted);">Total Komoditas</span>
-                            <span style="font-weight: 600;"><?= (int)$stats['tumbuhan']['total_items'] ?> komoditas</span>
+                            <span style="color: var(--ink-muted);">Total Data</span>
+                            <span style="font-weight: 600;"><?= (int)$stats['tumbuhan']['total_items'] ?> data</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--line);">
-                            <span style="color: var(--ink-muted);">Status Tayang</span>
-                            <span style="font-weight: 600; color: var(--brand);"><?= (int)$stats['tumbuhan']['published_items'] ?> komoditas</span>
+                            <span style="color: var(--ink-muted);">Data Tayang</span>
+                            <span style="font-weight: 600; color: var(--brand);"><?= (int)$stats['tumbuhan']['published_items'] ?> data</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--line);">
-                            <span style="color: var(--ink-muted);">Total Nilai Published</span>
+                            <span style="color: var(--ink-muted);">Total Nilai Data Tayang</span>
                             <span style="font-weight: 600;"><?= format_rupiah_singkat($stats['tumbuhan']['total_nilai']) ?></span>
                         </div>
                     </div>
