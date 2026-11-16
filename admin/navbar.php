@@ -16,9 +16,6 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <a href="index.php" class="admin-brand">
                 <img src="../embed/sigma-logo.png" alt="Logo SIGMA">
             </a>
-            <button class="admin-sidebar-collapse" id="adminSidebarCollapse" type="button" aria-controls="adminSidebar" aria-expanded="true" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
-                <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16m7-5-3-3 3-3"></path></svg>
-            </button>
         </div>
         <button class="admin-sidebar-close" id="adminSidebarClose" type="button" aria-label="Tutup menu navigasi">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"></path></svg>
@@ -85,6 +82,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         </div>
     </div>
 </nav>
+<button class="admin-sidebar-collapse" id="adminSidebarCollapse" type="button" aria-controls="adminSidebar" aria-expanded="true" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
+    <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16m7-5-3-3 3-3"></path></svg>
+</button>
 
 <script>
 (function() {
