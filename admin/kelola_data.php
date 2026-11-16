@@ -484,12 +484,19 @@ if ($jenis === 'domestik_keluar' || $jenis === 'domestik_masuk') {
                                                 'periode_a' => $periodeA,
                                                 'periode_b' => $periodeB,
                                             ];
+                                            $statusParams = $editParams + [
+                                                'selection_key' => $row['_selection_key'],
+                                            ];
                                             if (count($row['_source_ids']) === 1) {
                                                 $editParams['id'] = (int)$row['_source_ids'][0];
                                             } else {
                                                 $editParams['selection_key'] = $row['_selection_key'];
                                             }
                                             ?>
+                                            <a href="status_data.php?<?= htmlspecialchars(http_build_query($statusParams), ENT_QUOTES, 'UTF-8') ?>"
+                                                class="btn btn-outline-brand btn-sm" style="padding: 4px 7px;" title="Lihat status tayang per periode" aria-label="Kelola status tayang <?= htmlspecialchars($row['nama_komoditas'], ENT_QUOTES, 'UTF-8') ?>">
+                                                Status
+                                            </a>
                                             <a href="edit_data.php?<?= htmlspecialchars(http_build_query($editParams), ENT_QUOTES, 'UTF-8') ?>"
                                                 style="color: var(--brand); display: inline-flex; padding: 4px;" title="<?= count($row['_source_ids']) > 1 ? 'Pilih data per periode untuk diedit' : 'Edit' ?>" aria-label="Edit <?= htmlspecialchars($row['nama_komoditas'], ENT_QUOTES, 'UTF-8') ?>">
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
