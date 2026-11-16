@@ -68,6 +68,11 @@ $sourceRows = array_values(array_filter(
     $rangeRows,
     static fn(array $row): bool => in_array((int)$row['id'], $sourceIds, true)
 ));
+usort($sourceRows, static function (array $left, array $right): int {
+    return ((int)$left['is_published'] <=> (int)$right['is_published'])
+        ?: strcmp((string)$left['periode'], (string)$right['periode'])
+        ?: strcasecmp((string)$left['nama_komoditas'], (string)$right['nama_komoditas']);
+});
 
 if ($isPost) {
     require_csrf();

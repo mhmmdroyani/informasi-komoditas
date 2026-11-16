@@ -177,7 +177,8 @@ $stmtData = $pdo->prepare($sql);
 $stmtData->execute($params);
 $dataItems = aggregate_commodity_rows($stmtData->fetchAll(PDO::FETCH_ASSOC));
 usort($dataItems, static function ($left, $right) use ($urutanKolom) {
-    return ($right[$urutanKolom] <=> $left[$urutanKolom])
+    return ($left['is_published'] <=> $right['is_published'])
+        ?: ($right[$urutanKolom] <=> $left[$urutanKolom])
         ?: strcasecmp($left['nama_komoditas'], $right['nama_komoditas']);
 });
 
