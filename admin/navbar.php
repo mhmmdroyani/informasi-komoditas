@@ -16,6 +16,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <a href="index.php" class="admin-brand">
                 <img src="../embed/sigma-logo.png" alt="Logo SIGMA">
             </a>
+            <button class="admin-sidebar-pin" id="adminSidebarPin" type="button" aria-pressed="false" aria-label="Pin sidebar agar tetap terbuka" title="Pin sidebar agar tetap terbuka">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5-5 1-4 4-1 5-3-3-3 3"/><path d="m8 8-5 1 5 5"/></svg>
+            </button>
         </div>
         <button class="admin-sidebar-close" id="adminSidebarClose" type="button" aria-label="Tutup menu navigasi">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"></path></svg>
@@ -71,9 +74,6 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         </div>
 
         <div class="admin-sidebar-footer">
-            <button class="admin-sidebar-collapse" id="adminSidebarCollapse" type="button" aria-controls="adminSidebar" aria-expanded="true" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
-                <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16m7-5-3-3 3-3"></path></svg>
-            </button>
             <div class="admin-nav-user">
                 <span>Masuk sebagai <strong><?= htmlspecialchars($admin['nama']) ?></strong></span>
                 <form method="POST" action="logout.php" data-confirm="Yakin ingin logout?" style="display: inline;">
@@ -91,33 +91,73 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 <script>
 (function() {
     const sidebar = document.getElementById('adminSidebar');
+    const pinToggle = document.getElementById('adminSidebarPin');
     const toggle = document.getElementById('adminMenuToggle');
-    const collapseToggle = document.getElementById('adminSidebarCollapse');
     const close = document.getElementById('adminSidebarClose');
     const backdrop = document.getElementById('adminSidebarBackdrop');
     const uploadGroup = document.querySelector('.admin-nav-dropdown');
     const uploadToggle = document.querySelector('.admin-nav-dropdown-toggle');
     const scrollKey = 'adminFilterScroll';
-    const collapsedKey = 'adminSidebarCollapsed';
+    const pinnedKey = 'adminSidebarPinned';
+    const desktopSidebar = window.matchMedia('(min-width: 901px)');
+    let sidebarPinned = false;
+    let sidebarCollapsed = false;
+    let collapseTimeout = null;
 
     function setSidebarCollapsed(isCollapsed) {
+        sidebarCollapsed = isCollapsed;
         sidebar.classList.toggle('is-collapsed', isCollapsed);
         document.body.classList.toggle('admin-sidebar-collapsed', isCollapsed);
-        collapseToggle.setAttribute('aria-expanded', String(!isCollapsed));
-        collapseToggle.setAttribute('aria-label', isCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar');
-        collapseToggle.title = isCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar';
+    }
+
+    function updatePinButton() {
+        pinToggle.setAttribute('aria-pressed', String(sidebarPinned));
+        pinToggle.setAttribute('aria-label', sidebarPinned ? 'Lepas pin sidebar' : 'Pin sidebar agar tetap terbuka');
+        pinToggle.title = sidebarPinned ? 'Lepas pin sidebar' : 'Pin sidebar agar tetap terbuka';
+        sidebar.classList.toggle('is-pinned', sidebarPinned);
+    }
+
+    function setSidebarPinned(isPinned) {
+        sidebarPinned = isPinned;
+        updatePinButton();
         try {
-            localStorage.setItem(collapsedKey, isCollapsed ? 'true' : 'false');
+            localStorage.setItem(pinnedKey, isPinned ? 'true' : 'false');
         } catch (error) {
-            console.warn('Preferensi sidebar tidak dapat disimpan.', error);
+            console.warn('Preferensi pin sidebar tidak dapat disimpan.', error);
+        }
+
+        if (!desktopSidebar.matches) return;
+
+        window.clearTimeout(collapseTimeout);
+        setSidebarCollapsed(!isPinned);
+        if (!isPinned && (sidebar.matches(':hover') || sidebar.contains(document.activeElement))) {
+            setHoverExpanded(true);
         }
     }
 
-    try {
-        setSidebarCollapsed(localStorage.getItem(collapsedKey) === 'true');
-    } catch (error) {
-        console.warn('Preferensi sidebar tidak dapat dibaca.', error);
+    function setHoverExpanded(isExpanded) {
+        if (!desktopSidebar.matches || !sidebarCollapsed) return;
+
+        sidebar.classList.toggle('is-collapsed', !isExpanded);
+        document.body.classList.toggle('admin-sidebar-collapsed', !isExpanded);
     }
+
+    function scheduleHoverCollapse() {
+        window.clearTimeout(collapseTimeout);
+        collapseTimeout = window.setTimeout(() => {
+            if (!sidebar.matches(':hover') && !sidebar.querySelector(':focus-visible')) {
+                setHoverExpanded(false);
+            }
+        }, 250);
+    }
+
+    try {
+        sidebarPinned = localStorage.getItem(pinnedKey) === 'true';
+    } catch (error) {
+        console.warn('Preferensi pin sidebar tidak dapat dibaca.', error);
+    }
+    updatePinButton();
+    setSidebarCollapsed(desktopSidebar.matches && !sidebarPinned);
 
     window.navigateAdminFilter = function(url) {
         try {
@@ -155,8 +195,23 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     }
 
     toggle.addEventListener('click', () => setSidebarOpen(true));
-    collapseToggle.addEventListener('click', () => {
-        setSidebarCollapsed(!sidebar.classList.contains('is-collapsed'));
+    pinToggle.addEventListener('click', () => setSidebarPinned(!sidebarPinned));
+    sidebar.addEventListener('pointerenter', () => {
+        if (!desktopSidebar.matches || !sidebarCollapsed) return;
+        window.clearTimeout(collapseTimeout);
+        setHoverExpanded(true);
+    });
+    sidebar.addEventListener('pointerleave', scheduleHoverCollapse);
+    sidebar.addEventListener('focusin', () => {
+        if (!desktopSidebar.matches || !sidebarCollapsed) return;
+        window.clearTimeout(collapseTimeout);
+        setHoverExpanded(true);
+    });
+    sidebar.addEventListener('focusout', scheduleHoverCollapse);
+    desktopSidebar.addEventListener('change', () => {
+        window.clearTimeout(collapseTimeout);
+        setSidebarCollapsed(desktopSidebar.matches && !sidebarPinned);
+        if (desktopSidebar.matches && !sidebarPinned && sidebar.matches(':hover')) setHoverExpanded(true);
     });
     close.addEventListener('click', () => setSidebarOpen(false));
     backdrop.addEventListener('click', () => setSidebarOpen(false));
