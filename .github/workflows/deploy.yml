@@ -20,8 +20,8 @@ jobs:
           extensions: ctype, dom, fileinfo, filter, gd, iconv, libxml, mbstring, pdo_mysql, simplexml, xml, xmlreader, xmlwriter, zip, zlib
           coverage: none
 
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Install production dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
 
       - name: Validate dependencies
         run: composer check-platform-reqs
@@ -49,8 +49,8 @@ jobs:
           extensions: ctype, dom, fileinfo, filter, gd, iconv, libxml, mbstring, pdo_mysql, simplexml, xml, xmlreader, xmlwriter, zip, zlib
           coverage: none
 
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Install production dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
 
       - name: Deploy to InfinityFree
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
